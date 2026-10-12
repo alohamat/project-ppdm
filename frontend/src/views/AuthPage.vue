@@ -1,10 +1,23 @@
 <script setup lang="ts">
 import GlassDiv from '../components/GlassDiv.vue';
 import { ref } from 'vue'
+import axios from 'axios';
 
-const logged = ref(false);
 const registering = ref(false);
-const formBody = ref({})
+const formBody = ref({
+  email: "",
+  password: ""
+})
+
+const register = async () => {
+  await axios.post("localhost:8080/register", {email: formBody.value.email, password: formBody.value.password})
+  .then((response) => {
+    console.log(response.data)
+  })
+  .catch((error) => {
+    console.error(error)
+  })
+}
 </script>
 
 <template>
@@ -13,12 +26,12 @@ const formBody = ref({})
       <form class="flex flex-col gap-2">
         <div class="flex flex-col">
           <label for="email">E-mail:</label>
-          <input id="email" type="email" placeholder="seu@email.com" />
+          <input id="email" type="email" placeholder="seu@email.com" v-model="formBody.email" />
         </div>
 
         <div class="flex flex-col">
           <label for="password">Senha:</label>
-          <input id="password" type="password" placeholder="Sua senha" />
+          <input id="password" type="password" placeholder="Sua senha" v-model="formBody.password"/>
         </div>
 
         <div v-if="registering" class="flex flex-col">
