@@ -8,11 +8,18 @@ import (
 )
 
 func RegisterHandler (w http.ResponseWriter, r *http.Request) {
-	var Req models.User
-	err := json.NewDecoder(r.Body).Decode(&Req)
-	if (err != nil) {
-		log.Fatalln("Erro decodificando JSON")
+	if r.Method != http.MethodPost {
+		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
+		return
 	}
-	log.Println(Req.Email)
-	log.Println(Req.Password)
+
+	var req models.User
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		log.Println("Erro ao decodificar JSON:", err)
+		http.Error(w, "JSON inválido ou corpo vazio", http.StatusBadRequest)
+		return
+	}
+	log.Println(req.Email)
+	log.Println(req.Password)
 }

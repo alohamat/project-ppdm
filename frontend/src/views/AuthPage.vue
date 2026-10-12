@@ -10,7 +10,17 @@ const formBody = ref({
 })
 
 const register = async () => {
-  await axios.post("localhost:8080/register", {email: formBody.value.email, password: formBody.value.password})
+  await axios.post("http://localhost:8080/register", {email: formBody.value.email, password: formBody.value.password})
+  .then((response) => {
+    console.log(response.data)
+  })
+  .catch((error) => {
+    console.error(error)
+  })
+}
+
+const login = async () => {
+  await axios.post("http://localhost:8080/login", {email: formBody.value.email, password: formBody.value.password})
   .then((response) => {
     console.log(response.data)
   })
@@ -39,8 +49,10 @@ const register = async () => {
           <input id="password" type="password" placeholder="Confirme a senha" />
         </div>
 
-        <button type="submit"
-          class="bg-white/25 rounded-full hover:scale-110 transition-all duration-200 ease-in-out cursor-pointer w-full my-2">
+        <button type="button"
+          class="bg-white/25 rounded-full hover:scale-110 transition-all duration-200 ease-in-out cursor-pointer w-full my-2" 
+          @click="() => {registering ? register() : login()}"
+          >
           {{ registering ? "Cadastrar" : "Login" }}
         </button>
       </form>
