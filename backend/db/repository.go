@@ -14,7 +14,7 @@ type UserRepository struct {
 	collection *mongo.Collection
 }
 
-// construtor da struct
+	// construtor
 func NewUserRepository(col *mongo.Collection) *UserRepository {
 	return &UserRepository{
 		collection: col,
@@ -24,12 +24,12 @@ func NewUserRepository(col *mongo.Collection) *UserRepository {
 func (r *UserRepository) Create(ctx context.Context, u *models.User) (bson.ObjectID, error) {
 	res, err := r.collection.InsertOne(ctx, u)
 	if err != nil {
-		return bson.NilObjectID, fmt.Errorf("erro ao criar user: %w", err)
+		return bson.NilObjectID, fmt.Errorf("erro ao criar usuário: %w", err)
 	}
 
 	id, ok := res.InsertedID.(bson.ObjectID)
 	if !ok {
-		return bson.NilObjectID, errors.New("não foi possível obter objectid inserido")
+		return bson.NilObjectID, errors.New("não foi possível obter o objectid inserido")
 	}
 
 	u.ID = id
@@ -43,7 +43,44 @@ func (r *UserRepository) FindByID(ctx context.Context, id bson.ObjectID) (*model
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("erro ao buscar usuario por id: %w", err)
+		return nil, fmt.Errorf("erro ao buscar usuário por id: %w", err)
 	}
 	return &user, nil
+}
+
+func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*models.User, error) {
+	var user models.User
+	err := r.collection.FindOne(ctx, bson.M{"email": email}).Decode(&user)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("erro ao buscar usuário por email: %w", err)
+	}
+	return &user, nil
+}
+
+func (r *UserRepository) FindAll(ctx context.Context) ([]models.User, error) {
+	cursor, err := r.collection.Find(ctx, bson.M{})
+	if err != nil {
+		return nil, fmt.Errorf("erro ao listar usuários: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var users []models.User
+	if err := cursor.All(ctx, &users); err != nil {
+		return nil, fmt.Errorf("erro ao decodificar usuários: %w", err)
+	}
+	if users == nil {
+		users = []models.User{}
+	}
+	return users, nil
+}
+
+func (r *UserRepository) Count(ctx context.Context) (int64, error) {
+	count, err := r.collection.CountDocuments(ctx, bson.M{})
+	if err != nil {
+		return 0, fmt.Errorf("erro ao contar usuários: %w", err)
+	}
+	return count, nil
 }

@@ -1,30 +1,40 @@
 package main
 
 import (
-	"ppdm/db"
-	"ppdm/routes"
-	"github.com/joho/godotenv"
-
+	"log"
 	"net/http"
 	"os"
-	"log"
+
+	"github.com/joho/godotenv"
+	"ppdm/db"
+	"ppdm/routes"
 )
 
 func main() {
-	godotenv.Load()
-	MONGO_URI := os.Getenv("MONGO_URI")
-	if MONGO_URI == "" {
-		log.Fatal("uri not found in .env")
+	if err := godotenv.Load(); err != nil {
+		log.Println("Aviso: arquivo .env não encontrado, utilizando variáveis de ambiente do sistema.")
 	}
 
-	db, err := db.ConnectDB(MONGO_URI, "ppdm")
+	mongoURI := os.Getenv("MONGO_URI")
+	if mongoURI == "" {
+		log.Fatal("MONGO_URI não encontrada no arquivo .env ou nas variáveis de ambiente")
+	}
+
+	database, err := db.ConnectDB(mongoURI, "ppdm")
 	if err != nil {
-		log.Fatalf("Erro de conexão: %v", err)
+		log.Fatalf("Erro de conexão com MongoDB: %v", err)
 	}
-	defer db.Close()
+	defer database.Close()
+	log.Println("MongoDB conectado com sucesso!")
 
-	router := routes.InitRouter()
+	userRepo := db.NewUserRepository(database.Collection("users"))
+	router := routes.InitRouter(userRepo)
 
-	log.Println("Rodando em :8080")
-	log.Fatalln(http.ListenAndServe(":8080", router))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Printf("Servidor backend rodando em http://localhost:%s\n", port)
+	log.Fatalln(http.ListenAndServe(":"+port, router))
 }
