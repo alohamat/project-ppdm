@@ -7,7 +7,7 @@ import (
 
 func CorsMiddleware(handler http.Handler) http.Handler {
 	return cors.New(cors.Options{
-		AllowedOrigins: []string{"http://localhost:5173"},
+		AllowedOrigins: []string{"http://localhost:5173", "https://project-ppdm.onrender.com"},
 		AllowedMethods: []string{"POST", "GET", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders: []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
