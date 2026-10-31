@@ -1,13 +1,24 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import HomeDealsView from './views/HomeDealsView.vue'
 import AuthPage from './views/AuthPage.vue'
 import DashboardPage from './views/DashboardPage.vue'
 
+// rotas
 const routes = [
   {
     path: '/',
-    name: 'auth',
+    name: 'home',
+    component: HomeDealsView
+  },
+  {
+    path: '/login',
+    name: 'login',
     component: AuthPage,
     meta: { guestOnly: true }
+  },
+  {
+    path: '/auth',
+    redirect: '/login'
   },
   {
     path: '/dashboard',
@@ -26,12 +37,12 @@ const router = createRouter({
   routes
 })
 
-// navigation guard
+// guards
 router.beforeEach((to, _from, next) => {
   const token = localStorage.getItem('token')
 
   if (to.meta.requiresAuth && !token) {
-    return next({ path: '/' })
+    return next({ path: '/login' })
   }
 
   if (to.meta.guestOnly && token) {

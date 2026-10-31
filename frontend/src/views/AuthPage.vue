@@ -8,6 +8,7 @@ import { api } from '../api'
 const router = useRouter()
 const authStore = useAuthStore()
 
+// estado
 const registering = ref(false)
 const errorMessage = ref('')
 const loading = ref(false)
@@ -16,7 +17,7 @@ const formBody = ref({
   email: '',
   password: '',
   confirmPassword: '',
-  role: 'user' // teste
+  role: 'user'
 })
 
 const resetForm = () => {
@@ -32,6 +33,7 @@ const toggleMode = () => {
   resetForm()
 }
 
+// submit
 const handleSubmit = async () => {
   errorMessage.value = ''
 
@@ -72,7 +74,6 @@ const handleSubmit = async () => {
     authStore.setAuth(user, token)
     router.push('/dashboard')
   } catch (error: any) {
-    console.error('Erro na autenticação:', error)
     if (error.response?.data?.error) {
       errorMessage.value = error.response.data.error
     } else {
@@ -85,13 +86,22 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div class="h-screen bg-linear-to-b from-blue-700 via-purple-500 to-orange-500 animate-gradient flex items-center font-sf justify-center p-4">
+  <div class="h-screen bg-linear-to-b from-blue-700 via-purple-500 to-orange-500 animate-gradient flex flex-col items-center font-sf justify-center p-4">
+    <div class="w-full max-w-sm mb-3">
+      <button
+        @click="router.push('/')"
+        class="text-xs text-white/80 hover:text-white flex items-center gap-1 transition cursor-pointer"
+      >
+        <span>← Voltar para as ofertas de jogos</span>
+      </button>
+    </div>
+
     <GlassDiv class="w-full max-w-sm">
       <h2 class="text-xl font-bold text-center mb-4">
         {{ registering ? 'Criar Nova Conta' : 'Acessar Sistema' }}
       </h2>
 
-      <!-- Alerta de Erro -->
+      <!-- erro -->
       <div v-if="errorMessage" class="bg-red-500/40 border border-red-500/60 p-2.5 rounded-xl text-xs mb-3 text-white">
         {{ errorMessage }}
       </div>
@@ -133,6 +143,7 @@ const handleSubmit = async () => {
           />
         </div>
 
+        <!-- role -->
         <div v-if="registering" class="flex flex-col">
           <label for="role" class="text-xs mb-1 font-medium">Papel do Usuário:</label>
           <select

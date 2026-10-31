@@ -13,16 +13,19 @@ interface Stats {
   total_normal: number
 }
 
+// estado
 const stats = ref<Stats | null>(null)
 const usersList = ref<User[]>([])
 const loadingUsers = ref(false)
 const errorMessage = ref('')
 
+// logout
 const handleLogout = () => {
   authStore.logout()
   router.push('/')
 }
 
+// admin
 const loadAdminData = async () => {
   if (!authStore.isAdmin) return
 
@@ -36,7 +39,6 @@ const loadAdminData = async () => {
     stats.value = statsRes.data
     usersList.value = usersRes.data
   } catch (err: any) {
-    console.error('Erro ao carregar dados do admin:', err)
     errorMessage.value = err.response?.data?.error || 'Erro ao carregar dados administrativos.'
   } finally {
     loadingUsers.value = false
@@ -50,7 +52,7 @@ onMounted(async () => {
       await loadAdminData()
     }
   } catch (err) {
-    console.error('Erro ao buscar dados do perfil:', err)
+    console.error(err)
   }
 })
 </script>
@@ -59,6 +61,7 @@ onMounted(async () => {
   <div class="min-h-screen bg-linear-to-b from-blue-700 via-purple-500 to-orange-500 text-white font-sf p-6">
     <div class="max-w-5xl mx-auto space-y-6">
       
+      <!-- header -->
       <header class="bg-white/10 border border-white/20 rounded-2xl p-4 backdrop-blur-md shadow-lg flex flex-wrap items-center justify-between gap-4">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold text-lg">
@@ -75,18 +78,29 @@ onMounted(async () => {
           </div>
         </div>
 
-        <button
-          @click="handleLogout"
-          class="bg-red-500/80 hover:bg-red-500 text-white px-4 py-2 rounded-xl text-sm font-semibold transition cursor-pointer shadow"
-        >
-          Sair da Conta
-        </button>
+        <div class="flex items-center gap-3">
+          <button
+            @click="router.push('/')"
+            class="flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/15 px-3.5 py-2 text-xs font-semibold hover:bg-white/25 transition cursor-pointer"
+          >
+            <span>🎮 Ver Ofertas de Jogos</span>
+          </button>
+
+          <button
+            @click="handleLogout"
+            class="bg-red-500/80 hover:bg-red-500 text-white px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer shadow"
+          >
+            Sair da Conta
+          </button>
+        </div>
       </header>
 
+      <!-- erro -->
       <div v-if="errorMessage" class="bg-red-500/30 border border-red-500/50 p-3 rounded-xl text-sm">
         {{ errorMessage }}
       </div>
 
+      <!-- perfil -->
       <section class="bg-white/10 border border-white/20 rounded-2xl p-6 backdrop-blur-md shadow-lg">
         <h2 class="text-2xl font-bold mb-2">Painel Geral</h2>
         <p class="text-white/80">
@@ -98,6 +112,7 @@ onMounted(async () => {
         </p>
       </section>
 
+      <!-- admin -->
       <section v-if="authStore.isAdmin" class="space-y-6">
         <div class="flex items-center justify-between">
           <h2 class="text-2xl font-bold">Gerenciamento Administrativo</h2>
@@ -110,6 +125,7 @@ onMounted(async () => {
           </button>
         </div>
 
+        <!-- stats -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" v-if="stats">
           <div class="bg-white/10 border border-white/20 rounded-xl p-4 backdrop-blur-md">
             <span class="text-xs uppercase text-white/70">Total de Usuários</span>
@@ -125,6 +141,7 @@ onMounted(async () => {
           </div>
         </div>
 
+        <!-- tabela -->
         <div class="bg-white/10 border border-white/20 rounded-2xl p-6 backdrop-blur-md shadow-lg overflow-x-auto">
           <h3 class="font-semibold text-lg mb-4">Lista de Usuários no Banco de Dados</h3>
           
@@ -163,6 +180,7 @@ onMounted(async () => {
         </div>
       </section>
 
+      <!-- user -->
       <section v-else class="bg-white/10 border border-white/20 rounded-2xl p-6 backdrop-blur-md shadow-lg">
         <h3 class="font-semibold text-lg text-amber-200">Acesso Padrão</h3>
         <p class="text-sm text-white/80 mt-1">
@@ -173,4 +191,3 @@ onMounted(async () => {
     </div>
   </div>
 </template>
-
