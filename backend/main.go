@@ -8,6 +8,7 @@ import (
 	"github.com/joho/godotenv"
 	"ppdm/db"
 	"ppdm/routes"
+	"ppdm/services"
 )
 
 func main() {
@@ -28,7 +29,9 @@ func main() {
 	log.Println("MongoDB conectado com sucesso!")
 
 	userRepo := db.NewUserRepository(database.Collection("users"))
-	router := routes.InitRouter(userRepo)
+	dealsService := services.NewDealsService()
+
+	router := routes.InitRouter(userRepo, dealsService)
 
 	port := os.Getenv("PORT")
 	if port == "" {
