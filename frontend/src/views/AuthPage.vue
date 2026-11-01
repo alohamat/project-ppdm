@@ -83,30 +83,33 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-950 text-slate-100 font-sf flex flex-col items-center justify-center p-4">
-    <div class="w-full max-w-md mb-4">
+  <div class="flex min-h-screen flex-col items-center justify-center bg-slate-950 p-4 font-sf text-slate-100">
+    <!-- Navigation Back Link -->
+    <div class="mb-4 w-full max-w-md">
       <button
         type="button"
         @click="router.push('/')"
-        class="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-emerald-400 transition-colors py-1 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none rounded-md"
+        class="inline-flex items-center gap-1.5 rounded-md py-1 text-xs text-slate-400 transition-colors hover:text-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
       >
         <span>&larr; Voltar pras ofertas de jogos</span>
       </button>
     </div>
 
-    <div class="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 sm:p-8 shadow-xl">
-      <div class="text-center mb-6">
-        <div class="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-2xl mb-3" aria-hidden="true">
+    <!-- Auth Card -->
+    <div class="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-xl sm:p-8">
+      <div class="mb-6 text-center">
+        <div class="mb-3 inline-flex size-12 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-2xl" aria-hidden="true">
           🎮
         </div>
-        <h1 class="text-xl sm:text-2xl font-black text-white">
+        <h1 class="text-xl font-black text-white sm:text-2xl">
           {{ registering ? 'Criar sua conta' : 'Bora entrar' }}
         </h1>
-        <p class="text-xs sm:text-sm text-slate-400 mt-1">
+        <p class="mt-1 text-xs text-slate-400 sm:text-sm">
           {{ registering ? 'Leva menos de um minuto e você libera o acesso ao sistema.' : 'Digite suas credenciais pra acessar seu painel.' }}
         </p>
       </div>
 
+      <!-- Error State -->
       <div
         v-if="errorMessage"
         role="alert"
@@ -115,9 +118,10 @@ const handleSubmit = async () => {
         {{ errorMessage }}
       </div>
 
+      <!-- Auth Form -->
       <form @submit.prevent="handleSubmit" class="space-y-4">
         <div>
-          <label for="auth-email" class="block text-xs font-semibold text-slate-300 mb-1.5">
+          <label for="auth-email" class="mb-1.5 block text-xs font-semibold text-slate-300">
             E-mail
           </label>
           <input
@@ -127,12 +131,12 @@ const handleSubmit = async () => {
             autocomplete="email"
             placeholder="exemplo@email.com"
             v-model="formBody.email"
-            class="min-h-[44px] w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 transition-colors focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500/40 focus-visible:outline-none"
+            class="min-h-11 w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-sm text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
           />
         </div>
 
         <div>
-          <label for="auth-password" class="block text-xs font-semibold text-slate-300 mb-1.5">
+          <label for="auth-password" class="mb-1.5 block text-xs font-semibold text-slate-300">
             Senha
           </label>
           <input
@@ -142,12 +146,12 @@ const handleSubmit = async () => {
             autocomplete="current-password"
             placeholder="Mínimo de 6 dígitos"
             v-model="formBody.password"
-            class="min-h-[44px] w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 transition-colors focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500/40 focus-visible:outline-none"
+            class="min-h-11 w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-sm text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
           />
         </div>
 
         <div v-if="registering">
-          <label for="auth-confirm" class="block text-xs font-semibold text-slate-300 mb-1.5">
+          <label for="auth-confirm" class="mb-1.5 block text-xs font-semibold text-slate-300">
             Confirmar senha
           </label>
           <input
@@ -157,18 +161,18 @@ const handleSubmit = async () => {
             autocomplete="new-password"
             placeholder="Repita sua senha"
             v-model="formBody.confirmPassword"
-            class="min-h-[44px] w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 transition-colors focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500/40 focus-visible:outline-none"
+            class="min-h-11 w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-sm text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
           />
         </div>
 
         <div v-if="registering">
-          <label for="auth-role" class="block text-xs font-semibold text-slate-300 mb-1.5">
+          <label for="auth-role" class="mb-1.5 block text-xs font-semibold text-slate-300">
             Tipo de conta
           </label>
           <select
             id="auth-role"
             v-model="formBody.role"
-            class="min-h-[44px] w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-sm text-slate-200 transition-colors focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500/40 focus-visible:outline-none"
+            class="min-h-11 w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-sm text-slate-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
           >
             <option value="user">Jogador (Conta comum)</option>
             <option value="admin">Administrador (Controle do sistema)</option>
@@ -178,17 +182,18 @@ const handleSubmit = async () => {
         <button
           type="submit"
           :disabled="loading"
-          class="min-h-[44px] w-full rounded-xl bg-emerald-500 hover:bg-emerald-400 font-bold text-slate-950 text-sm py-2.5 px-4 transition-colors focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:outline-none shadow-md shadow-emerald-500/20 active:scale-[0.98] mt-2"
+          class="mt-2 min-h-11 w-full rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-bold text-slate-950 shadow-md shadow-emerald-500/20 transition-colors hover:bg-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 active:scale-[0.98]"
         >
           {{ loading ? 'Processando...' : (registering ? 'Criar minha conta' : 'Entrar na conta') }}
         </button>
       </form>
 
-      <div class="text-center text-xs text-slate-400 mt-6 pt-4 border-t border-slate-800">
+      <!-- Toggle Mode Link -->
+      <div class="mt-6 border-t border-slate-800 pt-4 text-center text-xs text-slate-400">
         <span>{{ registering ? 'Já tem cadastro por aqui?' : 'Ainda não tem conta?' }}</span>
         <button
           type="button"
-          class="text-emerald-400 hover:text-emerald-300 font-semibold ml-1.5 underline focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none rounded"
+          class="ml-1.5 rounded font-semibold text-emerald-400 underline hover:text-emerald-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
           @click="toggleMode"
         >
           {{ registering ? 'Fazer login' : 'Cadastre-se rapidinho' }}
