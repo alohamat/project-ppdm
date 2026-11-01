@@ -1,6 +1,5 @@
 import axios from 'axios'
 
-// api
 const baseURL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:8080' : 'https://project-ppdm-backend.onrender.com')
 
 export const api = axios.create({
@@ -10,7 +9,6 @@ export const api = axios.create({
   }
 })
 
-// auth
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
   if (token && config.headers) {
@@ -19,7 +17,6 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// erro
 api.interceptors.response.use(
   (response) => response,
   (error) => {

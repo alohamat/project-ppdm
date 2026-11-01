@@ -3,7 +3,6 @@ import HomeDealsView from './views/HomeDealsView.vue'
 import AuthPage from './views/AuthPage.vue'
 import DashboardPage from './views/DashboardPage.vue'
 
-// rotas
 const routes = [
   {
     path: '/',
@@ -37,7 +36,6 @@ const router = createRouter({
   routes
 })
 
-// guards
 router.beforeEach((to, _from, next) => {
   const token = localStorage.getItem('token')
 

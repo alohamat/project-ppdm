@@ -13,19 +13,16 @@ interface Stats {
   total_normal: number
 }
 
-// estado
 const stats = ref<Stats | null>(null)
 const usersList = ref<User[]>([])
 const loadingUsers = ref(false)
 const errorMessage = ref('')
 
-// logout
 const handleLogout = () => {
   authStore.logout()
   router.push('/')
 }
 
-// admin
 const loadAdminData = async () => {
   if (!authStore.isAdmin) return
 
@@ -39,7 +36,7 @@ const loadAdminData = async () => {
     stats.value = statsRes.data
     usersList.value = usersRes.data
   } catch (err: any) {
-    errorMessage.value = err.response?.data?.error || 'Erro ao carregar dados administrativos.'
+    errorMessage.value = err.response?.data?.error || 'Não deu pra puxar os dados de admin agora.'
   } finally {
     loadingUsers.value = false
   }
@@ -58,133 +55,138 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-linear-to-b from-blue-700 via-purple-500 to-orange-500 text-white font-sf p-6">
+  <div class="min-h-screen bg-slate-950 text-slate-100 font-sf p-4 sm:p-6 lg:p-8">
     <div class="max-w-5xl mx-auto space-y-6">
       
-      <!-- header -->
-      <header class="bg-white/10 border border-white/20 rounded-2xl p-4 backdrop-blur-md shadow-lg flex flex-wrap items-center justify-between gap-4">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold text-lg">
+      <header class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-lg text-emerald-400 shadow-inner" aria-hidden="true">
             {{ authStore.user?.email?.[0]?.toUpperCase() || 'U' }}
           </div>
           <div>
-            <h1 class="font-semibold text-lg">{{ authStore.user?.email }}</h1>
+            <h1 class="font-bold text-base sm:text-lg text-white">{{ authStore.user?.email }}</h1>
             <span
-              class="text-xs px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider inline-block"
-              :class="authStore.isAdmin ? 'bg-amber-400 text-amber-950' : 'bg-blue-300 text-blue-950'"
+              class="text-[11px] px-2.5 py-0.5 rounded-md font-bold uppercase tracking-wider inline-block mt-0.5"
+              :class="authStore.isAdmin ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'"
             >
-              {{ authStore.user?.role }}
+              {{ authStore.isAdmin ? 'Administrador' : 'Jogador' }}
             </span>
           </div>
         </div>
 
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2.5">
           <button
+            type="button"
             @click="router.push('/')"
-            class="flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/15 px-3.5 py-2 text-xs font-semibold hover:bg-white/25 transition cursor-pointer"
+            class="flex min-h-11 items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-200 transition-colors hover:border-slate-600 hover:bg-slate-750 hover:text-white focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
           >
-            <span>🎮 Ver Ofertas de Jogos</span>
+            <span>🎮 Ver ofertas de jogos</span>
           </button>
 
           <button
+            type="button"
             @click="handleLogout"
-            class="bg-red-500/80 hover:bg-red-500 text-white px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer shadow"
+            class="min-h-11 rounded-xl border border-rose-900/50 bg-rose-950/40 px-4 py-2 text-xs font-semibold text-rose-300 transition-colors hover:bg-rose-900/60 hover:text-white focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-none"
           >
-            Sair da Conta
+            Sair da conta
           </button>
         </div>
       </header>
 
-      <!-- erro -->
-      <div v-if="errorMessage" class="bg-red-500/30 border border-red-500/50 p-3 rounded-xl text-sm">
+      <div
+        v-if="errorMessage"
+        role="alert"
+        class="bg-rose-950/40 border border-rose-900/60 p-4 rounded-xl text-xs sm:text-sm text-rose-300"
+      >
         {{ errorMessage }}
       </div>
 
-      <!-- perfil -->
-      <section class="bg-white/10 border border-white/20 rounded-2xl p-6 backdrop-blur-md shadow-lg">
-        <h2 class="text-2xl font-bold mb-2">Painel Geral</h2>
-        <p class="text-white/80">
-          Você está autenticado no sistema via JWT! Seu ID de usuário é:
-          <code class="bg-black/30 px-2 py-0.5 rounded text-xs ml-1">{{ authStore.user?.id }}</code>
+      <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-sm space-y-3">
+        <h2 class="text-xl font-bold text-white">Status da Sessão</h2>
+        <p class="text-sm text-slate-300">
+          Você tá conectado e autenticado pelo token JWT. Seu ID no banco é:
+          <code class="bg-slate-950 border border-slate-800 px-2 py-0.5 rounded text-xs text-emerald-400 font-mono ml-1">{{ authStore.user?.id }}</code>
         </p>
-        <p class="text-white/80 mt-1">
-          Nível de acesso concedido: <strong class="capitalize">{{ authStore.user?.role }}</strong>.
+        <p class="text-sm text-slate-400">
+          Nível de permissão atual: <strong class="text-slate-200 capitalize">{{ authStore.user?.role === 'admin' ? 'Administrador' : 'Jogador' }}</strong>.
         </p>
       </section>
 
-      <!-- admin -->
       <section v-if="authStore.isAdmin" class="space-y-6">
-        <div class="flex items-center justify-between">
-          <h2 class="text-2xl font-bold">Gerenciamento Administrativo</h2>
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="text-xl font-bold text-white">Painel do Administrador</h2>
+            <p class="text-xs sm:text-sm text-slate-400">Acompanhe as contas e métricas do sistema.</p>
+          </div>
           <button
+            type="button"
             @click="loadAdminData"
             :disabled="loadingUsers"
-            class="bg-white/20 hover:bg-white/30 text-xs px-3 py-1.5 rounded-lg cursor-pointer transition"
+            class="min-h-11 rounded-xl border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-200 transition-colors hover:border-slate-600 hover:bg-slate-750 hover:text-white focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
           >
-            {{ loadingUsers ? 'Carregando...' : 'Atualizar Dados' }}
+            {{ loadingUsers ? 'Carregando dados...' : 'Atualizar métricas' }}
           </button>
         </div>
 
-        <!-- stats -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" v-if="stats">
-          <div class="bg-white/10 border border-white/20 rounded-xl p-4 backdrop-blur-md">
-            <span class="text-xs uppercase text-white/70">Total de Usuários</span>
-            <p class="text-3xl font-extrabold mt-1">{{ stats.total_users }}</p>
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm">
+            <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Total de contas</span>
+            <p class="text-3xl font-extrabold mt-1 text-white">{{ stats.total_users }}</p>
           </div>
-          <div class="bg-white/10 border border-white/20 rounded-xl p-4 backdrop-blur-md">
-            <span class="text-xs uppercase text-white/70">Administradores</span>
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm">
+            <span class="text-xs uppercase tracking-wider text-amber-400/80 font-semibold">Administradores</span>
             <p class="text-3xl font-extrabold mt-1 text-amber-300">{{ stats.total_admins }}</p>
           </div>
-          <div class="bg-white/10 border border-white/20 rounded-xl p-4 backdrop-blur-md">
-            <span class="text-xs uppercase text-white/70">Usuários Padrão</span>
-            <p class="text-3xl font-extrabold mt-1 text-blue-200">{{ stats.total_normal }}</p>
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm">
+            <span class="text-xs uppercase tracking-wider text-emerald-400/80 font-semibold">Jogadores</span>
+            <p class="text-3xl font-extrabold mt-1 text-emerald-400">{{ stats.total_normal }}</p>
           </div>
         </div>
 
-        <!-- tabela -->
-        <div class="bg-white/10 border border-white/20 rounded-2xl p-6 backdrop-blur-md shadow-lg overflow-x-auto">
-          <h3 class="font-semibold text-lg mb-4">Lista de Usuários no Banco de Dados</h3>
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm overflow-hidden">
+          <h3 class="font-bold text-base sm:text-lg text-white mb-4">Contas cadastradas no sistema</h3>
           
-          <table class="w-full text-left text-sm">
-            <thead class="border-b border-white/20 text-white/70 uppercase text-xs">
-              <tr>
-                <th class="py-2 px-3">E-mail</th>
-                <th class="py-2 px-3">Papel</th>
-                <th class="py-2 px-3">ID (Mongo ObjectID)</th>
-                <th class="py-2 px-3">Data de Cadastro</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-white/10">
-              <tr v-for="user in usersList" :key="user.id" class="hover:bg-white/5 transition">
-                <td class="py-3 px-3 font-medium">{{ user.email }}</td>
-                <td class="py-3 px-3">
-                  <span
-                    class="text-xs px-2 py-0.5 rounded font-bold uppercase"
-                    :class="user.role === 'admin' ? 'bg-amber-400 text-amber-950' : 'bg-blue-300 text-blue-950'"
-                  >
-                    {{ user.role }}
-                  </span>
-                </td>
-                <td class="py-3 px-3 font-mono text-xs opacity-80">{{ user.id }}</td>
-                <td class="py-3 px-3 text-xs opacity-80">
-                  {{ user.created_at ? new Date(user.created_at).toLocaleString() : '-' }}
-                </td>
-              </tr>
-              <tr v-if="usersList.length === 0">
-                <td colspan="4" class="py-4 text-center text-white/60">
-                  Nenhum usuário encontrado.
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="overflow-x-auto -mx-5 px-5 sm:mx-0 sm:px-0">
+            <table class="w-full text-left text-sm">
+              <thead class="border-b border-slate-800 text-slate-400 uppercase text-[11px] font-semibold tracking-wider">
+                <tr>
+                  <th class="py-3 px-3">E-mail</th>
+                  <th class="py-3 px-3">Papel</th>
+                  <th class="py-3 px-3">Identificador (ID)</th>
+                  <th class="py-3 px-3">Data de cadastro</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800/80">
+                <tr v-for="user in usersList" :key="user.id" class="hover:bg-slate-850/60 transition-colors">
+                  <td class="py-3 px-3 font-medium text-slate-200">{{ user.email }}</td>
+                  <td class="py-3 px-3">
+                    <span
+                      class="text-[11px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider"
+                      :class="user.role === 'admin' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'"
+                    >
+                      {{ user.role === 'admin' ? 'Admin' : 'Jogador' }}
+                    </span>
+                  </td>
+                  <td class="py-3 px-3 font-mono text-xs text-slate-400">{{ user.id }}</td>
+                  <td class="py-3 px-3 text-xs text-slate-400">
+                    {{ user.created_at ? new Date(user.created_at).toLocaleString('pt-BR') : 'Indisponível' }}
+                  </td>
+                </tr>
+                <tr v-if="usersList.length === 0">
+                  <td colspan="4" class="py-6 text-center text-slate-400">
+                    Nenhuma conta encontrada até o momento.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
-      <!-- user -->
-      <section v-else class="bg-white/10 border border-white/20 rounded-2xl p-6 backdrop-blur-md shadow-lg">
-        <h3 class="font-semibold text-lg text-amber-200">Acesso Padrão</h3>
-        <p class="text-sm text-white/80 mt-1">
-          Sua conta é do tipo <strong>user</strong>. Recursos de gerenciamento e relatórios do sistema são exclusivos para administradores.
+      <section v-else class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-sm space-y-2">
+        <h3 class="font-bold text-lg text-emerald-300">Espaço do Jogador</h3>
+        <p class="text-sm text-slate-300">
+          Sua conta tá ativa e você pode navegar à vontade pelas ofertas! As ferramentas de moderação e listagem de usuários são exclusivas dos administradores.
         </p>
       </section>
 

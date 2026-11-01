@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import GlassDiv from '../components/GlassDiv.vue'
 import { useAuthStore } from '../auth'
 import { api } from '../api'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
-// estado
 const registering = ref(false)
 const errorMessage = ref('')
 const loading = ref(false)
@@ -33,22 +31,21 @@ const toggleMode = () => {
   resetForm()
 }
 
-// submit
 const handleSubmit = async () => {
   errorMessage.value = ''
 
   if (!formBody.value.email || !formBody.value.password) {
-    errorMessage.value = 'Preencha o e-mail e a senha.'
+    errorMessage.value = 'Preencha o e-mail e a senha pra continuar.'
     return
   }
 
   if (registering.value) {
     if (formBody.value.password.length < 6) {
-      errorMessage.value = 'A senha deve ter pelo menos 6 caracteres.'
+      errorMessage.value = 'A senha precisa ter pelo menos 6 caracteres.'
       return
     }
     if (formBody.value.password !== formBody.value.confirmPassword) {
-      errorMessage.value = 'As senhas não coincidem.'
+      errorMessage.value = 'As duas senhas não estão iguais. Confere aí.'
       return
     }
   }
@@ -77,7 +74,7 @@ const handleSubmit = async () => {
     if (error.response?.data?.error) {
       errorMessage.value = error.response.data.error
     } else {
-      errorMessage.value = 'Ocorreu um erro ao conectar ao servidor.'
+      errorMessage.value = 'Não deu pra conectar com o servidor. Tenta de novo daqui a pouco.'
     }
   } finally {
     loading.value = false
@@ -86,111 +83,117 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div class="h-screen bg-linear-to-b from-blue-700 via-purple-500 to-orange-500 animate-gradient flex flex-col items-center font-sf justify-center p-4">
-    <div class="w-full max-w-sm mb-3">
+  <div class="min-h-screen bg-slate-950 text-slate-100 font-sf flex flex-col items-center justify-center p-4">
+    <div class="w-full max-w-md mb-4">
       <button
+        type="button"
         @click="router.push('/')"
-        class="text-xs text-white/80 hover:text-white flex items-center gap-1 transition cursor-pointer"
+        class="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-emerald-400 transition-colors py-1 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none rounded-md"
       >
-        <span>← Voltar para as ofertas de jogos</span>
+        <span>&larr; Voltar pras ofertas de jogos</span>
       </button>
     </div>
 
-    <GlassDiv class="w-full max-w-sm">
-      <h2 class="text-xl font-bold text-center mb-4">
-        {{ registering ? 'Criar Nova Conta' : 'Acessar Sistema' }}
-      </h2>
+    <div class="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 sm:p-8 shadow-xl">
+      <div class="text-center mb-6">
+        <div class="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-2xl mb-3" aria-hidden="true">
+          🎮
+        </div>
+        <h1 class="text-xl sm:text-2xl font-black text-white">
+          {{ registering ? 'Criar sua conta' : 'Bora entrar' }}
+        </h1>
+        <p class="text-xs sm:text-sm text-slate-400 mt-1">
+          {{ registering ? 'Leva menos de um minuto e você libera o acesso ao sistema.' : 'Digite suas credenciais pra acessar seu painel.' }}
+        </p>
+      </div>
 
-      <!-- erro -->
-      <div v-if="errorMessage" class="bg-red-500/40 border border-red-500/60 p-2.5 rounded-xl text-xs mb-3 text-white">
+      <div
+        v-if="errorMessage"
+        role="alert"
+        class="mb-4 rounded-xl border border-rose-900/60 bg-rose-950/40 p-3 text-xs text-rose-300"
+      >
         {{ errorMessage }}
       </div>
 
-      <form @submit.prevent="handleSubmit" class="flex flex-col gap-3">
-        <div class="flex flex-col">
-          <label for="email" class="text-xs mb-1 font-medium">E-mail:</label>
+      <form @submit.prevent="handleSubmit" class="space-y-4">
+        <div>
+          <label for="auth-email" class="block text-xs font-semibold text-slate-300 mb-1.5">
+            E-mail
+          </label>
           <input
-            id="email"
+            id="auth-email"
             type="email"
             required
-            placeholder="seu@email.com"
+            autocomplete="email"
+            placeholder="exemplo@email.com"
             v-model="formBody.email"
-            class="rounded-lg py-1.5 px-3"
+            class="min-h-[44px] w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 transition-colors focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500/40 focus-visible:outline-none"
           />
         </div>
 
-        <div class="flex flex-col">
-          <label for="password" class="text-xs mb-1 font-medium">Senha:</label>
+        <div>
+          <label for="auth-password" class="block text-xs font-semibold text-slate-300 mb-1.5">
+            Senha
+          </label>
           <input
-            id="password"
+            id="auth-password"
             type="password"
             required
-            placeholder="Sua senha (mín. 6 dígitos)"
+            autocomplete="current-password"
+            placeholder="Mínimo de 6 dígitos"
             v-model="formBody.password"
-            class="rounded-lg py-1.5 px-3"
+            class="min-h-[44px] w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 transition-colors focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500/40 focus-visible:outline-none"
           />
         </div>
 
-        <div v-if="registering" class="flex flex-col">
-          <label for="confirmPassword" class="text-xs mb-1 font-medium">Confirmar Senha:</label>
+        <div v-if="registering">
+          <label for="auth-confirm" class="block text-xs font-semibold text-slate-300 mb-1.5">
+            Confirmar senha
+          </label>
           <input
-            id="confirmPassword"
+            id="auth-confirm"
             type="password"
             required
-            placeholder="Confirme sua senha"
+            autocomplete="new-password"
+            placeholder="Repita sua senha"
             v-model="formBody.confirmPassword"
-            class="rounded-lg py-1.5 px-3"
+            class="min-h-[44px] w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 transition-colors focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500/40 focus-visible:outline-none"
           />
         </div>
 
-        <!-- role -->
-        <div v-if="registering" class="flex flex-col">
-          <label for="role" class="text-xs mb-1 font-medium">Papel do Usuário:</label>
+        <div v-if="registering">
+          <label for="auth-role" class="block text-xs font-semibold text-slate-300 mb-1.5">
+            Tipo de conta
+          </label>
           <select
-            id="role"
+            id="auth-role"
             v-model="formBody.role"
-            class="rounded-lg py-1.5 px-3 text-sm text-black bg-white/90 outline-none"
+            class="min-h-[44px] w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-sm text-slate-200 transition-colors focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500/40 focus-visible:outline-none"
           >
-            <option value="user">Usuário Comum (User)</option>
-            <option value="admin">Administrador (Admin)</option>
+            <option value="user">Jogador (Conta comum)</option>
+            <option value="admin">Administrador (Controle do sistema)</option>
           </select>
         </div>
 
         <button
           type="submit"
           :disabled="loading"
-          class="bg-white/25 hover:bg-white/35 active:scale-95 rounded-full py-2 font-semibold transition-all duration-200 cursor-pointer w-full mt-2 shadow"
+          class="min-h-[44px] w-full rounded-xl bg-emerald-500 hover:bg-emerald-400 font-bold text-slate-950 text-sm py-2.5 px-4 transition-colors focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:outline-none shadow-md shadow-emerald-500/20 active:scale-[0.98] mt-2"
         >
-          {{ loading ? 'Processando...' : (registering ? 'Cadastrar' : 'Entrar') }}
+          {{ loading ? 'Processando...' : (registering ? 'Criar minha conta' : 'Entrar na conta') }}
         </button>
       </form>
 
-      <div class="text-center text-xs mt-4">
-        <span>{{ registering ? 'Já tem uma conta?' : 'Não tem uma conta?' }}</span>
+      <div class="text-center text-xs text-slate-400 mt-6 pt-4 border-t border-slate-800">
+        <span>{{ registering ? 'Já tem cadastro por aqui?' : 'Ainda não tem conta?' }}</span>
         <button
           type="button"
-          class="text-blue-200 hover:text-white underline cursor-pointer ml-1 font-medium"
+          class="text-emerald-400 hover:text-emerald-300 font-semibold ml-1.5 underline focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none rounded"
           @click="toggleMode"
         >
-          {{ registering ? 'Fazer Login' : 'Cadastre-se' }}
+          {{ registering ? 'Fazer login' : 'Cadastre-se rapidinho' }}
         </button>
       </div>
-    </GlassDiv>
+    </div>
   </div>
 </template>
-
-<style lang="css" scoped>
-input {
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  background-color: rgba(255, 255, 255, 0.15);
-  outline: none;
-  color: white;
-}
-input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
-}
-input:focus {
-  border-color: rgba(255, 255, 255, 0.8);
-  background-color: rgba(255, 255, 255, 0.25);
-}
-</style>
