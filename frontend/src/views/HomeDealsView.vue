@@ -218,7 +218,7 @@ const handleLogout = () => {
               v-model="searchQuery"
               type="text"
               placeholder="Buscar pelo título do jogo..."
-              class="w-full rounded-xl border border-white/20 bg-white/10 py-2 pl-9 pr-3 text-xs text-white placeholder-white/50 outline-none focus:border-white/50 focus:bg-white/20 transition"
+              class="w-full rounded-xl border border-white/20 bg-white/10 py-2 pl-9 pr-3 text-xs text-white outline-none transition"
             />
             <svg class="absolute left-3 top-2.5 h-3.5 w-3.5 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -229,7 +229,7 @@ const handleLogout = () => {
           <div class="lg:col-span-3">
             <select
               v-model="selectedStore"
-              class="w-full rounded-xl border border-white/20 bg-white/10 py-2 px-3 text-xs text-white outline-none focus:border-white/50 focus:bg-white/20 transition cursor-pointer"
+              class="w-full rounded-xl border py-2 px-3 text-xs text-white outline-none focus:border-white/50 focus:bg-white/20 transition cursor-pointer"
             >
               <option value="all" class="text-zinc-900">Todas as Lojas</option>
               <option value="epic" class="text-zinc-900">Epic Games</option>
@@ -241,7 +241,7 @@ const handleLogout = () => {
           <div class="lg:col-span-3">
             <select
               v-model="sortBy"
-              class="w-full rounded-xl border border-white/20 bg-white/10 py-2 px-3 text-xs text-white outline-none focus:border-white/50 focus:bg-white/20 transition cursor-pointer"
+              class="w-full rounded-xl border border-white/20 bg-white/10 py-2 px-3 text-xs text-white outline-none transition cursor-pointer"
             >
               <option value="discount" class="text-zinc-900">Maior Desconto</option>
               <option value="price" class="text-zinc-900">Menor Preço</option>
@@ -254,7 +254,7 @@ const handleLogout = () => {
       <!-- loading -->
       <div v-if="loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         <div v-for="n in 8" :key="n" class="animate-pulse rounded-2xl border border-white/15 bg-white/10 p-4 space-y-3">
-          <div class="aspect-16/9 w-full rounded-xl bg-white/10"></div>
+          <div class="aspect-video w-full rounded-xl bg-white/10"></div>
           <div class="h-4 w-3/4 rounded bg-white/15"></div>
           <div class="h-3 w-1/2 rounded bg-white/10"></div>
         </div>
@@ -290,3 +290,4 @@ const handleLogout = () => {
     </div>
   </div>
 </template>
+

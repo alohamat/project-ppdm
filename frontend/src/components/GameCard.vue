@@ -36,7 +36,7 @@ const isUpcoming = computed(() => props.deal.status === 'free_upcoming')
   <div class="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-white/30 hover:bg-white/15 hover:shadow-2xl hover:shadow-purple-500/10">
     <div>
       <!-- banner -->
-      <div class="relative aspect-16/9 w-full overflow-hidden bg-black/40">
+      <div class="relative aspect-video w-full overflow-hidden bg-black/40">
         <img
           :src="deal.image_url || '/placeholder.png'"
           :alt="deal.title"
@@ -44,7 +44,7 @@ const isUpcoming = computed(() => props.deal.status === 'free_upcoming')
           class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
 
-        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+        <div class="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent"></div>
 
         <!-- badge loja -->
         <div class="absolute top-3 left-3 flex items-center gap-1.5">
@@ -145,3 +145,4 @@ const isUpcoming = computed(() => props.deal.status === 'free_upcoming')
     </div>
   </div>
 </template>
+

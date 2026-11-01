@@ -19,3 +19,4 @@ export interface DealsResponse {
   big_deals: GameDeal[]
   updated_at: string
 }
+
