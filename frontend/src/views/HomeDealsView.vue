@@ -169,7 +169,7 @@ const resetAllFilters = () => {
     <header class="sticky top-0 z-50 border-b border-slate-200/80 bg-white/85 dark:border-slate-800/80 dark:bg-slate-950/85 backdrop-blur-md transition-colors duration-200">
       <div class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
         <div class="flex items-center gap-3">
-          <div class="flex size-10 shrink-0 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-xl shadow-inner shadow-emerald-500/20" aria-hidden="true">🎮</div>
+          <div class="flex size-10 shrink-0 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-xl shadow-inner shadow-emerald-500/20" aria-hidden="true"><img src="/miteido.png"></div>
           <div>
             <div class="flex items-center gap-2">
               <span class="text-base sm:text-lg font-black tracking-tight text-slate-900 dark:text-white">BadukiSales</span>
