@@ -13,7 +13,15 @@
   --color-slate-850: #131b2e;
 }
 
-/* Base interactive affordances */
+/* Utilitário para ocultar barra de rolagem mantendo a navegação por toque e mouse */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 a,
 button,
 select,

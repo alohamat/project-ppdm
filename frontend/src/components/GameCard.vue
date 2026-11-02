@@ -1,28 +1,25 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { GameDeal } from '../types/deal'
+import { formatCurrencyBRL, getRemainingTime, formatUpcomingDate } from '../utils/format'
 
 const props = defineProps<{
   deal: GameDeal
+  compact?: boolean
 }>()
 
 const imageError = ref(false)
 
-const formatPrice = (val: number) => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL'
-  }).format(val)
-}
-
-const formattedDate = computed(() => {
-  if (props.deal.status === 'free_upcoming' && props.deal.start_date) {
-    const d = new Date(props.deal.start_date)
-    return `Libera em ${d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}`
+const expirationInfo = computed(() => {
+  if (props.deal.status === 'free_now' || props.deal.status === 'deal') {
+    return getRemainingTime(props.deal.end_date)
   }
-  if (props.deal.end_date) {
-    const d = new Date(props.deal.end_date)
-    return `Até ${d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} às ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
+  return null
+})
+
+const upcomingInfo = computed(() => {
+  if (props.deal.status === 'free_upcoming') {
+    return formatUpcomingDate(props.deal.start_date)
   }
   return null
 })
@@ -51,18 +48,18 @@ const discountBadge = computed(() => {
   if (isFree.value) {
     return {
       text: '100% OFF',
-      classes: 'bg-emerald-600 uppercase font-bold'
+      classes: 'bg-emerald-600 uppercase font-bold text-white shadow-emerald-500/20'
     }
   }
   if (isUpcoming.value) {
     return {
       text: 'Em breve',
-      classes: 'bg-violet-600 uppercase font-semibold'
+      classes: 'bg-violet-600 uppercase font-semibold text-white shadow-violet-500/20'
     }
   }
   return {
     text: `-${props.deal.discount_percent}%`,
-    classes: 'bg-emerald-600 font-bold'
+    classes: 'bg-emerald-600 font-bold text-white shadow-emerald-500/20'
   }
 })
 
@@ -79,7 +76,8 @@ const handleImageError = () => {
 
 <template>
   <article
-    class="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 transition duration-200 hover:-translate-y-0.5 hover:border-slate-700 hover:shadow-xl hover:shadow-black/50"
+    class="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-900/70 backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:border-slate-700 hover:bg-slate-900/90 hover:shadow-xl hover:shadow-black/40"
+    :class="{ 'opacity-85 grayscale hover:grayscale-0 hover:opacity-100': isUpcoming }"
   >
     <!-- Visual / Media Header -->
     <div class="relative aspect-video w-full overflow-hidden bg-slate-950">
@@ -101,12 +99,12 @@ const handleImageError = () => {
       </div>
 
       <!-- Scrim gradient for contrast -->
-      <div class="pointer-events-none absolute inset-0 bg-linear-to-t from-slate-950/90 via-slate-950/30 to-transparent"></div>
+      <div class="pointer-events-none absolute inset-0 bg-linear-to-t from-slate-950/95 via-slate-950/30 to-transparent"></div>
 
       <!-- Store badge -->
-      <div class="absolute top-3 left-3 flex items-center">
+      <div class="absolute top-2.5 left-2.5 flex items-center">
         <span
-          class="flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-semibold uppercase shadow-sm"
+          class="flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-semibold uppercase shadow-sm"
           :class="storeBadgeConfig.variantClasses"
         >
           <svg class="size-3 fill-current" viewBox="0 0 24 24" aria-hidden="true">
@@ -124,61 +122,70 @@ const handleImageError = () => {
       </div>
 
       <!-- Discount badge -->
-      <div class="absolute top-3 right-3">
+      <div class="absolute top-2.5 right-2.5">
         <span
-          class="inline-block rounded-md px-2 py-0.5 text-xs text-white shadow-md"
+          class="inline-block rounded-md px-2 py-0.5 text-xs shadow-md"
           :class="discountBadge.classes"
         >
           {{ discountBadge.text }}
         </span>
       </div>
 
-      <!-- Expiration / Availability info -->
-      <div v-if="formattedDate" class="absolute bottom-2 inset-x-3 truncate text-xs font-medium text-slate-300">
-        {{ formattedDate }}
+      <!-- Expiration / Availability info banner -->
+      <div class="absolute bottom-2 inset-x-2.5 flex items-center justify-between text-xs">
+        <div v-if="expirationInfo" class="flex items-center gap-1 font-semibold truncate" :class="expirationInfo.isUrgent ? 'text-amber-300' : 'text-slate-300'">
+          <span class="inline-block size-1.5 rounded-full" :class="expirationInfo.isUrgent ? 'bg-amber-400 animate-ping' : 'bg-emerald-400'"></span>
+          <span>{{ expirationInfo.text }}</span>
+        </div>
+        <div v-else-if="upcomingInfo" class="text-violet-300 font-medium truncate">
+          {{ upcomingInfo }}
+        </div>
       </div>
     </div>
 
     <!-- Card Body & Action -->
-    <div class="flex flex-1 flex-col justify-between gap-4 p-4">
-      <div class="space-y-2">
+    <div class="flex flex-1 flex-col justify-between gap-3.5 p-3.5 sm:p-4">
+      <div class="space-y-1.5">
         <h3
-          class="line-clamp-1 text-base font-semibold text-slate-100 transition-colors group-hover:text-emerald-400"
+          class="line-clamp-1 text-sm sm:text-base font-semibold text-slate-100 transition-colors group-hover:text-emerald-400"
           :title="deal.title"
         >
           {{ deal.title }}
         </h3>
 
+        <!-- Price Comparison Section -->
         <div class="flex items-baseline gap-2">
           <template v-if="isUpcoming">
-            <span class="text-sm font-semibold text-violet-300">Em breve na faixa</span>
+            <span class="text-xs sm:text-sm font-semibold text-violet-300">Em breve de graça</span>
           </template>
 
           <template v-else>
             <span
-              class="text-lg font-black"
+              class="text-base sm:text-lg font-black"
               :class="isFree ? 'text-emerald-400' : 'text-slate-100'"
             >
-              {{ isFree ? 'Grátis' : formatPrice(deal.final_price) }}
+              {{ isFree ? 'Grátis' : formatCurrencyBRL(deal.final_price) }}
             </span>
             <span
               v-if="hasStrikethroughPrice"
               class="text-xs text-slate-400 line-through"
+              :title="`Preço original: ${formatCurrencyBRL(deal.original_price)}`"
             >
-              {{ formatPrice(deal.original_price) }}
+              {{ formatCurrencyBRL(deal.original_price) }}
             </span>
           </template>
         </div>
       </div>
 
+      <!-- CTA Button -->
       <a
         :href="deal.store_url"
         target="_blank"
         rel="noopener noreferrer"
-        class="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800/80 px-4 py-2.5 text-xs font-semibold text-slate-200 transition-colors duration-200 hover:border-emerald-500 hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 active:scale-[0.98]"
+        class="flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border border-slate-700/80 bg-slate-800/90 px-3.5 py-2 text-xs font-semibold text-slate-200 transition-all duration-200 hover:border-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 active:scale-[0.98]"
       >
         <span>{{ actionText }}</span>
-        <svg class="size-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <svg class="size-3.5 text-slate-400 group-hover:text-emerald-300 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
         </svg>
       </a>
