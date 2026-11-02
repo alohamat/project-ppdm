@@ -39,6 +39,8 @@ func InitRouter(userRepo *db.UserRepository, dealsService *services.DealsService
 	admin.Use(middlewares.AdminMiddleware)
 
 	admin.HandleFunc("/users", adminHandler.GetAllUsers).Methods(http.MethodGet, http.MethodOptions)
+	admin.HandleFunc("/users/{id}/role", adminHandler.UpdateUserRole).Methods(http.MethodPut, http.MethodOptions)
+	admin.HandleFunc("/users/{id}", adminHandler.DeleteUser).Methods(http.MethodDelete, http.MethodOptions)
 	admin.HandleFunc("/stats", adminHandler.GetStats).Methods(http.MethodGet, http.MethodOptions)
 
 	// Middleware de CORS

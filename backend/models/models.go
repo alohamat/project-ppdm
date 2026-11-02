@@ -24,6 +24,10 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
+type UpdateRoleRequest struct {
+	Role string `json:"role"`
+}
+
 type UserResponse struct {
 	ID        string    `json:"id"`
 	Email     string    `json:"email"`

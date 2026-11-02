@@ -84,3 +84,29 @@ func (r *UserRepository) Count(ctx context.Context) (int64, error) {
 	}
 	return count, nil
 }
+
+func (r *UserRepository) UpdateRole(ctx context.Context, id bson.ObjectID, newRole string) error {
+	res, err := r.collection.UpdateOne(
+		ctx,
+		bson.M{"_id": id},
+		bson.M{"$set": bson.M{"role": newRole}},
+	)
+	if err != nil {
+		return fmt.Errorf("erro ao atualizar cargo: %w", err)
+	}
+	if res.MatchedCount == 0 {
+		return errors.New("usuário não encontrado")
+	}
+	return nil
+}
+
+func (r *UserRepository) Delete(ctx context.Context, id bson.ObjectID) error {
+	res, err := r.collection.DeleteOne(ctx, bson.M{"_id": id})
+	if err != nil {
+		return fmt.Errorf("erro ao deletar usuário: %w", err)
+	}
+	if res.DeletedCount == 0 {
+		return errors.New("usuário não encontrado")
+	}
+	return nil
+}
