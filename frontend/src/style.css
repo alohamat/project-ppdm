@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @font-face {
   font-family: 'sf';
   src: url('./assets/fonts/SF-Pro.woff2') format('woff2');
@@ -13,7 +15,6 @@
   --color-slate-850: #131b2e;
 }
 
-/* Utilitário para ocultar barra de rolagem mantendo a navegação por toque e mouse */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -37,7 +38,6 @@ select:disabled,
   cursor: not-allowed;
 }
 
-/* Respeito a usuarios com reducao de movimento */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
