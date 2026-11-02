@@ -64,21 +64,10 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// se for o primeiro user ele vira admin
-	role := "user"
-	if req.Role == "admin" {
-		role = "admin"
-	} else {
-		count, _ := h.UserRepo.Count(ctx)
-		if count == 0 {
-			role = "admin"
-		}
-	}
-
 	newUser := &models.User{
 		Email:     req.Email,
 		Password:  hashedPassword,
-		Role:      role,
+		Role:      "user",
 		CreatedAt: time.Now(),
 	}
 

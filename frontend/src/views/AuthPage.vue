@@ -15,7 +15,6 @@ const formBody = ref({
   email: '',
   password: '',
   confirmPassword: '',
-  role: 'user'
 })
 
 const resetForm = () => {
@@ -23,7 +22,6 @@ const resetForm = () => {
   formBody.value.email = ''
   formBody.value.password = ''
   formBody.value.confirmPassword = ''
-  formBody.value.role = 'user'
 }
 
 const toggleMode = () => {
@@ -58,7 +56,6 @@ const handleSubmit = async () => {
       ? {
           email: formBody.value.email,
           password: formBody.value.password,
-          role: formBody.value.role
         }
       : {
           email: formBody.value.email,
@@ -164,21 +161,6 @@ const handleSubmit = async () => {
             class="min-h-11 w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-sm text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
           />
         </div>
-
-        <div v-if="registering">
-          <label for="auth-role" class="mb-1.5 block text-xs font-semibold text-slate-300">
-            Tipo de conta
-          </label>
-          <select
-            id="auth-role"
-            v-model="formBody.role"
-            class="min-h-11 w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-sm text-slate-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
-          >
-            <option value="user">Jogador (Conta comum)</option>
-            <option value="admin">Administrador (Controle do sistema)</option>
-          </select>
-        </div>
-
         <button
           type="submit"
           :disabled="loading"

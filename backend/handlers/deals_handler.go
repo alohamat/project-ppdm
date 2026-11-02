@@ -38,7 +38,7 @@ func (h *DealsHandler) GetFreeDeals(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := map[string]interface{}{
+	response := map[string]any{
 		"free_now":      deals.FreeNow,
 		"free_upcoming": deals.FreeUpcoming,
 		"updated_at":    deals.UpdatedAt,
