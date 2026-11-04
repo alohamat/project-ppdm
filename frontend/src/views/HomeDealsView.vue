@@ -16,7 +16,7 @@ const dealsData = ref<DealsResponse | null>(null)
 const loading = ref(true)
 const error = ref('')
 
-const activePill = ref<'all' | 'huge_discount' | 'under_15' | 'steam_deck' | 'free_now'>('all')
+const activePill = ref<'all' | 'huge_discount' | 'under_15' | 'free_now'>('all')
 const selectedStore = ref<'all' | 'epic' | 'steam'>('all')
 const searchQuery = ref('')
 const sortBy = ref<'discount' | 'price' | 'name'>('discount')
@@ -41,7 +41,6 @@ const pills = [
   { id: 'all', label: '⭐ Todas as Ofertas', active: 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 shadow-md', inactive: 'hover:border-slate-300 dark:hover:border-slate-700' },
   { id: 'huge_discount', label: '🔥 >75% OFF', active: 'bg-rose-600 text-white shadow-md shadow-rose-600/20 border-rose-500', inactive: 'hover:border-rose-400 dark:hover:border-rose-900/50 hover:text-rose-600 dark:hover:text-rose-300' },
   { id: 'under_15', label: '🪙 Até R$ 15', active: 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20 border-amber-400', inactive: 'hover:border-amber-400 dark:hover:border-amber-900/50 hover:text-amber-600 dark:hover:text-amber-300' },
-  { id: 'steam_deck', label: '🐧 Deck / Steam', active: 'bg-sky-600 text-white shadow-md shadow-sky-600/20 border-sky-500', inactive: 'hover:border-sky-400 dark:hover:border-sky-900/50 hover:text-sky-600 dark:hover:text-sky-300' },
   { id: 'free_now', label: '🎁 100% Grátis', active: 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20 border-emerald-500', inactive: 'hover:border-emerald-400 dark:hover:border-emerald-900/50 hover:text-emerald-600 dark:hover:text-emerald-300' }
 ] as const
 
@@ -135,7 +134,6 @@ const filteredDeals = computed(() => {
 
   if (activePill.value === 'huge_discount') list = list.filter((i) => i.discount_percent >= 75)
   else if (activePill.value === 'under_15') list = list.filter((i) => i.final_price > 0 && i.final_price <= 15)
-  else if (activePill.value === 'steam_deck') list = list.filter((i) => i.store === 'steam')
   else if (activePill.value === 'free_now') list = list.filter((i) => i.status === 'free_now')
 
   if (searchQuery.value.trim()) {
