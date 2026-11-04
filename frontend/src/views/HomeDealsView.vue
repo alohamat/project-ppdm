@@ -5,6 +5,7 @@ import { api } from '../api'
 import { useAuthStore } from '../auth'
 import { useTheme } from '../composables/useTheme'
 import GameCard from '../components/GameCard.vue'
+import GameCardSkeleton from '../components/GameCardSkeleton.vue'
 import type { GameDeal, DealsResponse } from '../types/deal'
 import { formatCurrencyBRL } from '../utils/format'
 
@@ -68,11 +69,21 @@ const handleGlobalKeydown = (e: KeyboardEvent) => {
   }
 }
 
+const setSentinel = (el: any) => {
+  if (observer && infiniteSentinel.value) {
+    observer.unobserve(infiniteSentinel.value)
+  }
+  infiniteSentinel.value = el as HTMLElement | null
+  if (observer && el) {
+    observer.observe(el as HTMLElement)
+  }
+}
+
 onMounted(() => {
-  fetchDeals()
-  countdownInterval = window.setInterval(() => { nowTimestamp.value = Date.now() }, 1000)
   observer = new IntersectionObserver(([e]) => { if (e?.isIntersecting) loadMore() }, { rootMargin: '200px' })
   if (infiniteSentinel.value) observer.observe(infiniteSentinel.value)
+  fetchDeals()
+  countdownInterval = window.setInterval(() => { nowTimestamp.value = Date.now() }, 1000)
   window.addEventListener('keydown', handleGlobalKeydown)
 })
 
@@ -236,224 +247,366 @@ const resetAllFilters = () => {
     </header>
 
     <main class="mx-auto w-full max-w-7xl flex-1 space-y-10 p-4 sm:p-6 lg:p-8">
-      <section aria-label="Destaque principal e Economômetro" class="space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-emerald-500/30 bg-linear-to-r from-emerald-50/90 via-white/80 to-slate-50/80 dark:from-emerald-950/40 dark:via-slate-900/80 dark:to-slate-900/70 p-4 backdrop-blur-md shadow-lg shadow-emerald-500/5 dark:shadow-emerald-950/20">
-          <div class="flex items-center gap-3">
-            <div class="flex size-10 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-black text-lg border border-emerald-500/30">🪙</div>
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Economômetro Ativo</span>
-                <span class="inline-flex size-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              </div>
-              <p class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">
-                {{ formatCurrencyBRL(econometer.totalSavings) }}
-                <span class="text-xs font-normal text-slate-500 dark:text-slate-300">economizados em promoções ativas</span>
-              </p>
-            </div>
-          </div>
-          <div class="flex flex-wrap items-center gap-2">
-            <span class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white/80 dark:border-slate-800 dark:bg-slate-950/70 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-sm">
-              <span>🎁</span><span><strong>{{ econometer.freebiesCount }}</strong> Grátis para resgatar</span>
-            </span>
-            <span class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white/80 dark:border-slate-800 dark:bg-slate-950/70 px-3 py-1.5 text-xs font-semibold text-amber-600 dark:text-amber-300 shadow-sm">
-              <span>🔥</span><span>Até <strong>-{{ econometer.maxDiscount }}%</strong> OFF</span>
-            </span>
-          </div>
-        </div>
-
-        <div v-if="heroFreeGame" class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white/90 shadow-xl dark:border-slate-800 dark:bg-slate-900/80 backdrop-blur-md dark:shadow-2xl transition-all duration-300 hover:border-slate-300 dark:hover:border-slate-700">
-          <div class="flex flex-col lg:flex-row">
-            <div class="relative lg:col-span-7 aspect-video overflow-hidden bg-slate-950">
-              <img :src="heroFreeGame.image_url" :alt="heroFreeGame.title" class="size-full object-cover transition-transform duration-500 hover:scale-105" />
-              <div class="pointer-events-none absolute inset-0 bg-linear-to-t from-slate-950 via-slate-950/40 to-transparent lg:bg-linear-to-r lg:from-transparent lg:to-slate-900/95"></div>
-              <div class="absolute top-4 left-4 flex items-center gap-2">
-                <span class="rounded-xl border border-emerald-500/40 bg-emerald-600/90 px-3 py-1 text-xs font-black uppercase tracking-wider text-white shadow-lg backdrop-blur-md">⚡ Grátis da Semana</span>
-                <span class="rounded-xl border border-slate-700/80 bg-slate-950/80 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-slate-200 backdrop-blur-md">{{ heroFreeGame.store === 'epic' ? 'Epic Games' : 'Steam' }}</span>
+      <!-- ESQUELETO DE CARREGAMENTO INICIAL: Exibido enquanto as ofertas não foram carregadas -->
+      <template v-if="loading && !dealsData">
+        <!-- Esqueleto do Economômetro & Destaque Principal -->
+        <section aria-label="Carregando resumo e destaque" class="space-y-4">
+          <!-- Economômetro Skeleton -->
+          <div class="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white/80 dark:border-slate-800 dark:bg-slate-900/60 p-4 shadow-sm animate-pulse">
+            <div class="flex items-center gap-3">
+              <div class="size-10 rounded-xl bg-slate-200 dark:bg-slate-800"></div>
+              <div class="space-y-2">
+                <div class="h-3 w-28 rounded bg-slate-200 dark:bg-slate-800"></div>
+                <div class="h-6 w-52 rounded bg-slate-200 dark:bg-slate-800"></div>
               </div>
             </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <div class="h-8 w-36 rounded-xl bg-slate-200 dark:bg-slate-800"></div>
+              <div class="h-8 w-28 rounded-xl bg-slate-200 dark:bg-slate-800"></div>
+            </div>
+          </div>
 
-            <div class="lg:col-span-5 flex flex-col justify-between p-6 sm:p-8 space-y-6">
-              <div class="space-y-3">
-                <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                  <span class="inline-block size-2 rounded-full bg-emerald-500 animate-ping"></span>
-                  <span>Disponível por tempo limitado</span>
-                </div>
-                <h2 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">{{ heroFreeGame.title }}</h2>
-                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300">Resgate agora para adicionar permanentemente à sua biblioteca sem pagar nada.</p>
-                <div class="flex items-baseline gap-3 pt-2">
-                  <span class="text-3xl sm:text-4xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">GRÁTIS</span>
-                  <span v-if="heroFreeGame.original_price > 0" class="text-sm sm:text-base text-slate-400 line-through">{{ formatCurrencyBRL(heroFreeGame.original_price) }}</span>
-                  <span class="rounded-lg bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-xs font-extrabold text-emerald-600 dark:text-emerald-300">100% OFF</span>
-                </div>
+          <!-- Hero Free Game Skeleton -->
+          <div class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white/90 shadow-xl dark:border-slate-800 dark:bg-slate-900/80 animate-pulse">
+            <div class="flex flex-col lg:flex-row">
+              <div class="aspect-video lg:col-span-7 w-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
+                <div class="size-12 rounded-full bg-slate-300/60 dark:bg-slate-700/60"></div>
               </div>
 
-              <div v-if="countdownUnits.length > 0" class="rounded-2xl border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950/70 p-4 space-y-2">
-                <div class="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  <span class="flex items-center gap-1.5 text-amber-600 dark:text-amber-300">
-                    <svg class="size-4 animate-spin text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="2" stroke="currentColor" stroke-dasharray="16" /></svg>
-                    <span>Tempo restante para resgate:</span>
-                  </span>
-                  <span class="text-slate-500 dark:text-slate-400 text-[11px]">Não perca!</span>
-                </div>
-                <div class="grid grid-cols-4 gap-2 text-center pt-1">
-                  <div v-for="u in countdownUnits" :key="u.label" class="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800/80 dark:bg-slate-900/90 py-2">
-                    <span class="block text-xl sm:text-2xl font-black font-mono text-slate-900 dark:text-white" :class="u.highlight ? 'text-emerald-600! dark:text-emerald-400!' : ''">{{ u.val }}</span>
-                    <span class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">{{ u.label }}</span>
+              <div class="lg:col-span-5 flex flex-col justify-between p-6 sm:p-8 space-y-6 w-full">
+                <div class="space-y-3">
+                  <div class="h-4 w-36 rounded bg-slate-200 dark:bg-slate-800"></div>
+                  <div class="h-8 w-3/4 rounded bg-slate-200 dark:bg-slate-800"></div>
+                  <div class="h-4 w-5/6 rounded bg-slate-200/70 dark:bg-slate-800/70"></div>
+                  <div class="flex items-baseline gap-3 pt-2">
+                    <div class="h-9 w-28 rounded-lg bg-slate-200 dark:bg-slate-800"></div>
+                    <div class="h-6 w-16 rounded-lg bg-slate-200/60 dark:bg-slate-800/60"></div>
                   </div>
                 </div>
+
+                <div class="rounded-2xl border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950/70 p-4 space-y-2">
+                  <div class="h-3 w-40 rounded bg-slate-200 dark:bg-slate-800"></div>
+                  <div class="grid grid-cols-4 gap-2 pt-1">
+                    <div v-for="i in 4" :key="i" class="h-14 rounded-xl bg-slate-200 dark:bg-slate-800"></div>
+                  </div>
+                </div>
+
+                <div class="h-12 w-full rounded-2xl bg-slate-200 dark:bg-slate-800"></div>
               </div>
-
-              <a :href="heroFreeGame.store_url" target="_blank" rel="noopener noreferrer" class="flex min-h-12 w-full items-center justify-center gap-2.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm uppercase tracking-wide transition-all shadow-xl shadow-emerald-500/25 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-400/40">
-                <span>Resgatar Jogo de Graça</span>
-                <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-              </a>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section aria-label="Radar de Brindes Epic Games" class="space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800/80 pb-3">
-          <div>
+        <!-- Esqueleto do Radar de Brindes -->
+        <section aria-label="Carregando radar de brindes" class="space-y-4 animate-pulse">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800/80 pb-3">
+            <div class="space-y-1.5">
+              <div class="flex items-center gap-2">
+                <div class="h-6 w-36 rounded bg-slate-200 dark:bg-slate-800"></div>
+                <div class="h-5 w-28 rounded-full bg-slate-200 dark:bg-slate-800"></div>
+              </div>
+              <div class="h-3 w-64 rounded bg-slate-200/70 dark:bg-slate-800/70"></div>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="h-4 w-24 rounded bg-slate-200 dark:bg-slate-800"></div>
+              <div class="h-4 w-28 rounded bg-slate-200 dark:bg-slate-800"></div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch">
+            <div class="md:col-span-7 space-y-3">
+              <div class="h-4 w-44 rounded bg-slate-200 dark:bg-slate-800"></div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <GameCardSkeleton v-for="n in 2" :key="n" />
+              </div>
+            </div>
+
+            <div class="hidden md:flex md:col-span-1 flex-col items-center justify-center">
+              <div class="h-10 border-l border-dashed border-slate-300 dark:border-slate-700"></div>
+              <div class="my-2 size-8 rounded-full bg-slate-200 dark:bg-slate-800"></div>
+              <div class="h-10 border-l border-dashed border-slate-300 dark:border-slate-700"></div>
+            </div>
+
+            <div class="md:col-span-4 space-y-3">
+              <div class="h-4 w-36 rounded bg-slate-200 dark:bg-slate-800"></div>
+              <GameCardSkeleton />
+            </div>
+          </div>
+        </section>
+
+        <!-- Esqueleto das Ofertas em Destaque Steam -->
+        <section aria-label="Carregando ofertas Steam" class="space-y-4 animate-pulse">
+          <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800/80 pb-3">
+            <div class="space-y-1.5">
+              <div class="flex items-center gap-2">
+                <div class="h-6 w-40 rounded bg-slate-200 dark:bg-slate-800"></div>
+                <div class="h-5 w-24 rounded-full bg-slate-200 dark:bg-slate-800"></div>
+              </div>
+              <div class="h-3 w-56 rounded bg-slate-200/70 dark:bg-slate-800/70"></div>
+            </div>
             <div class="flex items-center gap-2">
-              <span class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Radar de Brindes</span>
-              <span class="rounded-full border border-violet-300 bg-violet-50 text-violet-700 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-300 px-2 py-0.5 text-[11px] font-bold">Epic Games Freebies</span>
-            </div>
-            <p class="text-xs text-slate-500 dark:text-slate-400">Jogos gratuitos de hoje conectados à rotação da próxima semana</p>
-          </div>
-          <div class="flex items-center gap-3 text-xs text-slate-600 dark:text-slate-400 font-medium">
-            <span class="flex items-center gap-1.5"><span class="size-2 rounded-full bg-emerald-500"></span> Resgate Ativo</span>
-            <span class="flex items-center gap-1.5"><span class="size-2 rounded-full bg-violet-500"></span> Próxima Semana (P&B)</span>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch">
-          <div class="md:col-span-7 space-y-3">
-            <div class="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-              <span class="flex items-center gap-1.5"><span class="size-2 rounded-full bg-emerald-500 animate-ping"></span><span>Disponíveis para resgate agora</span></span>
-              <span class="text-slate-500 dark:text-slate-400 font-normal">({{ epicFreebiesCurrent.length }} jogos)</span>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <GameCard v-for="deal in epicFreebiesCurrent" :key="deal.id" :deal="deal" />
+              <div class="size-9 rounded-xl bg-slate-200 dark:bg-slate-800"></div>
+              <div class="size-9 rounded-xl bg-slate-200 dark:bg-slate-800"></div>
             </div>
           </div>
 
-          <div class="hidden md:flex md:col-span-1 flex-col items-center justify-center text-slate-400 dark:text-slate-600">
-            <div class="h-10 border-l border-dashed border-slate-300 dark:border-slate-700"></div>
-            <div class="my-2 rounded-full border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900 p-2 text-slate-600 dark:text-slate-400">
-              <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-            </div>
-            <div class="h-10 border-l border-dashed border-slate-300 dark:border-slate-700"></div>
-          </div>
-
-          <div class="md:col-span-4 space-y-3">
-            <div class="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400">
-              <span>⏰ Próxima Semana (Em breve)</span>
-              <span class="text-slate-500 dark:text-slate-400 font-normal">({{ epicFreebiesUpcoming.length }})</span>
-            </div>
-            <div v-if="epicFreebiesUpcoming.length > 0" class="space-y-4">
-              <GameCard v-for="deal in epicFreebiesUpcoming" :key="deal.id" :deal="deal" />
-            </div>
-            <div v-else class="rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900/40 p-8 text-center text-xs text-slate-500 dark:text-slate-400">
-              Os próximos jogos grátis da semana serão revelados em breve pela Epic Games.
+          <div class="no-scrollbar flex gap-4 overflow-x-hidden pb-2 pt-1">
+            <div v-for="n in 4" :key="n" class="w-72 sm:w-80 shrink-0">
+              <GameCardSkeleton />
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section aria-label="Carrossel de Ofertas Steam Specials" class="space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800/80 pb-3">
-          <div>
-            <div class="flex items-center gap-2">
-              <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Ofertas em Destaque</h2>
-              <span class="rounded-full border border-sky-300 bg-sky-50 text-sky-800 dark:border-sky-800/60 dark:bg-sky-950/70 dark:text-sky-300 px-2 py-0.5 text-[11px] font-bold">Steam Specials</span>
+        <!-- Esqueleto dos Filtros Pílula -->
+        <section aria-label="Carregando filtros" class="space-y-4 rounded-2xl border border-slate-200 bg-white/70 dark:border-slate-800 dark:bg-slate-900/60 p-4 sm:p-5 animate-pulse">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex flex-wrap items-center gap-2">
+              <div class="h-8 w-32 rounded-full bg-slate-200 dark:bg-slate-800"></div>
+              <div class="h-8 w-24 rounded-full bg-slate-200 dark:bg-slate-800"></div>
+              <div class="h-8 w-28 rounded-full bg-slate-200 dark:bg-slate-800"></div>
+              <div class="h-8 w-24 rounded-full bg-slate-200 dark:bg-slate-800"></div>
             </div>
-            <p class="text-xs text-slate-500 dark:text-slate-400">Navegue pelas melhores promoções ativas na Steam hoje</p>
+            <div class="h-8 w-36 rounded-xl bg-slate-200 dark:bg-slate-800"></div>
           </div>
-          <div class="flex items-center gap-2">
-            <button type="button" @click="scrollCarousel('left')" class="flex size-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500" aria-label="Rolar esquerda">◄</button>
-            <button type="button" @click="scrollCarousel('right')" class="flex size-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500" aria-label="Rolar direita">►</button>
+        </section>
+
+        <!-- Esqueleto do Feed de Ofertas -->
+        <section aria-label="Carregando feed de ofertas" class="space-y-6">
+          <div class="h-4 w-40 rounded bg-slate-200 dark:bg-slate-800 animate-pulse"></div>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" aria-busy="true">
+            <GameCardSkeleton v-for="n in 8" :key="n" />
           </div>
-        </div>
+        </section>
+      </template>
 
-        <div ref="steamCarouselRef" class="no-scrollbar flex gap-4 overflow-x-auto scroll-smooth snap-x pb-2 pt-1">
-          <div v-for="deal in steamSpecials" :key="deal.id" class="w-72 sm:w-80 shrink-0 snap-start">
-            <GameCard :deal="deal" />
-          </div>
-        </div>
-      </section>
-
-      <section aria-label="Filtros pílula" class="space-y-4 rounded-2xl border border-slate-200 bg-white/70 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 p-4 sm:p-5 backdrop-blur-md">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div class="flex flex-wrap items-center gap-2">
-            <button
-              v-for="p in pills"
-              :key="p.id"
-              type="button"
-              @click="activePill = p.id; visibleCount = pageSize"
-              class="rounded-full px-4 py-2 text-xs font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 border border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
-              :class="activePill === p.id ? p.active : p.inactive"
-            >
-              {{ p.label }}
-            </button>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <label for="sort-select" class="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">Ordenar por:</label>
-            <select id="sort-select" v-model="sortBy" class="rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 shadow-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
-              <option value="discount">Maior Desconto (%)</option>
-              <option value="price">Menor Preço (R$)</option>
-              <option value="name">Ordem Alfabética (A-Z)</option>
-            </select>
-          </div>
-        </div>
-      </section>
-
-      <section aria-label="Feed de ofertas" class="space-y-6">
-        <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-          <span>Exibindo <strong>{{ visibleDeals.length }}</strong> de <strong>{{ filteredDeals.length }}</strong> ofertas</span>
-          <button v-if="searchQuery || activePill !== 'all' || selectedStore !== 'all'" type="button" @click="resetAllFilters" class="text-emerald-600 dark:text-emerald-400 hover:underline">Limpar filtros ativos</button>
-        </div>
-
-        <div v-if="loading" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" aria-busy="true">
-          <div v-for="n in 8" :key="n" class="animate-pulse space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/70">
-            <div class="aspect-video w-full rounded-xl bg-slate-200 dark:bg-slate-800"></div>
-            <div class="h-4 w-3/4 rounded bg-slate-200 dark:bg-slate-800"></div>
-            <div class="h-3 w-1/2 rounded bg-slate-200/70 dark:bg-slate-800/70"></div>
-            <div class="h-10 w-full rounded-xl bg-slate-200 dark:bg-slate-800 pt-2"></div>
-          </div>
-        </div>
-
-        <div v-else-if="error" class="space-y-3 rounded-2xl border border-rose-300 bg-rose-50 p-8 text-center dark:border-rose-900/60 dark:bg-rose-950/30">
+      <!-- ERRO NA CARGA INICIAL: Quando não há dados e ocorreu um erro -->
+      <template v-else-if="error && !dealsData">
+        <div class="space-y-3 rounded-2xl border border-rose-300 bg-rose-50 p-8 text-center dark:border-rose-900/60 dark:bg-rose-950/30">
           <span class="text-3xl" aria-hidden="true">⚠️</span>
-          <h2 class="text-base font-bold text-rose-700 dark:text-rose-200">Não foi possível carregar o feed</h2>
+          <h2 class="text-base font-bold text-rose-700 dark:text-rose-200">Não foi possível carregar as ofertas</h2>
           <p class="mx-auto max-w-md text-xs text-rose-600 dark:text-rose-300 sm:text-sm">{{ error }}</p>
           <div>
             <button type="button" @click="fetchDeals" class="min-h-11 rounded-xl bg-rose-600 px-5 py-2 text-xs font-bold text-white shadow hover:bg-rose-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400">Tentar novamente</button>
           </div>
         </div>
+      </template>
 
-        <div v-else-if="visibleDeals.length > 0" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          <GameCard v-for="deal in visibleDeals" :key="deal.id" :deal="deal" />
-        </div>
-
-        <div v-else class="space-y-3 rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900/60 backdrop-blur-md">
-          <span class="text-4xl" aria-hidden="true">🎮</span>
-          <h3 class="text-base font-bold text-slate-900 dark:text-slate-100">Nenhum jogo encontrado para estes filtros</h3>
-          <p class="mx-auto max-w-md text-xs text-slate-500 dark:text-slate-400 sm:text-sm">Tente ajustar o termo de busca ou selecionar outro filtro pílula.</p>
-          <div class="pt-2">
-            <button type="button" @click="resetAllFilters" class="min-h-10 rounded-xl border border-slate-300 bg-slate-100 hover:bg-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 px-4 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">Redefinir filtros</button>
+      <!-- CONTEÚDO PRINCIPAL: Exibido assim que as ofertas forem carregadas -->
+      <template v-else>
+        <section aria-label="Destaque principal e Economômetro" class="space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-emerald-500/30 bg-linear-to-r from-emerald-50/90 via-white/80 to-slate-50/80 dark:from-emerald-950/40 dark:via-slate-900/80 dark:to-slate-900/70 p-4 backdrop-blur-md shadow-lg shadow-emerald-500/5 dark:shadow-emerald-950/20">
+            <div class="flex items-center gap-3">
+              <div class="flex size-10 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-black text-lg border border-emerald-500/30">🪙</div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Economômetro Ativo</span>
+                  <span class="inline-flex size-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                </div>
+                <p class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">
+                  {{ formatCurrencyBRL(econometer.totalSavings) }}
+                  <span class="text-xs font-normal text-slate-500 dark:text-slate-300">economizados em promoções ativas</span>
+                </p>
+              </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white/80 dark:border-slate-800 dark:bg-slate-950/70 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-sm">
+                <span>🎁</span><span><strong>{{ econometer.freebiesCount }}</strong> Grátis para resgatar</span>
+              </span>
+              <span class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white/80 dark:border-slate-800 dark:bg-slate-950/70 px-3 py-1.5 text-xs font-semibold text-amber-600 dark:text-amber-300 shadow-sm">
+                <span>🔥</span><span>Até <strong>-{{ econometer.maxDiscount }}%</strong> OFF</span>
+              </span>
+            </div>
           </div>
-        </div>
 
-        <div class="flex flex-col items-center justify-center pt-6 space-y-3">
-          <div ref="infiniteSentinel" class="h-2 w-full"></div>
-          <button v-if="hasMoreDeals" type="button" @click="loadMore" class="min-h-11 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 shadow-sm dark:border-slate-700 dark:bg-slate-900/90 dark:hover:bg-slate-800 dark:text-slate-200 px-6 py-2.5 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
-            Carregar mais ofertas ({{ filteredDeals.length - visibleDeals.length }} restantes)
-          </button>
-          <span v-else-if="filteredDeals.length > 0" class="text-xs text-slate-400 dark:text-slate-500">Você visualizou todas as ofertas disponíveis hoje! 🎉</span>
-        </div>
-      </section>
+          <div v-if="heroFreeGame" class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white/90 shadow-xl dark:border-slate-800 dark:bg-slate-900/80 backdrop-blur-md dark:shadow-2xl transition-all duration-300 hover:border-slate-300 dark:hover:border-slate-700">
+            <div class="flex flex-col lg:flex-row">
+              <div class="relative lg:col-span-7 aspect-video overflow-hidden bg-slate-950">
+                <img :src="heroFreeGame.image_url" :alt="heroFreeGame.title" class="size-full object-cover transition-transform duration-500 hover:scale-105" />
+                <div class="pointer-events-none absolute inset-0 bg-linear-to-t from-slate-950 via-slate-950/40 to-transparent lg:bg-linear-to-r lg:from-transparent lg:to-slate-900/95"></div>
+                <div class="absolute top-4 left-4 flex items-center gap-2">
+                  <span class="rounded-xl border border-emerald-500/40 bg-emerald-600/90 px-3 py-1 text-xs font-black uppercase tracking-wider text-white shadow-lg backdrop-blur-md">⚡ Grátis da Semana</span>
+                  <span class="rounded-xl border border-slate-700/80 bg-slate-950/80 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-slate-200 backdrop-blur-md">{{ heroFreeGame.store === 'epic' ? 'Epic Games' : 'Steam' }}</span>
+                </div>
+              </div>
+
+              <div class="lg:col-span-5 flex flex-col justify-between p-6 sm:p-8 space-y-6">
+                <div class="space-y-3">
+                  <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                    <span class="inline-block size-2 rounded-full bg-emerald-500 animate-ping"></span>
+                    <span>Disponível por tempo limitado</span>
+                  </div>
+                  <h2 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">{{ heroFreeGame.title }}</h2>
+                  <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300">Resgate agora para adicionar permanentemente à sua biblioteca sem pagar nada.</p>
+                  <div class="flex items-baseline gap-3 pt-2">
+                    <span class="text-3xl sm:text-4xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">GRÁTIS</span>
+                    <span v-if="heroFreeGame.original_price > 0" class="text-sm sm:text-base text-slate-400 line-through">{{ formatCurrencyBRL(heroFreeGame.original_price) }}</span>
+                    <span class="rounded-lg bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-xs font-extrabold text-emerald-600 dark:text-emerald-300">100% OFF</span>
+                  </div>
+                </div>
+
+                <div v-if="countdownUnits.length > 0" class="rounded-2xl border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950/70 p-4 space-y-2">
+                  <div class="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    <span class="flex items-center gap-1.5 text-amber-600 dark:text-amber-300">
+                      <svg class="size-4 animate-spin text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="2" stroke="currentColor" stroke-dasharray="16" /></svg>
+                      <span>Tempo restante para resgate:</span>
+                    </span>
+                    <span class="text-slate-500 dark:text-slate-400 text-[11px]">Não perca!</span>
+                  </div>
+                  <div class="grid grid-cols-4 gap-2 text-center pt-1">
+                    <div v-for="u in countdownUnits" :key="u.label" class="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800/80 dark:bg-slate-900/90 py-2">
+                      <span class="block text-xl sm:text-2xl font-black font-mono text-slate-900 dark:text-white" :class="u.highlight ? 'text-emerald-600! dark:text-emerald-400!' : ''">{{ u.val }}</span>
+                      <span class="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 tracking-wider">{{ u.label }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <a :href="heroFreeGame.store_url" target="_blank" rel="noopener noreferrer" class="flex min-h-12 w-full items-center justify-center gap-2.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm uppercase tracking-wide transition-all shadow-xl shadow-emerald-500/25 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-400/40">
+                  <span>Resgatar Jogo de Graça</span>
+                  <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section aria-label="Radar de Brindes Epic Games" class="space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800/80 pb-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Radar de Brindes</span>
+                <span class="rounded-full border border-violet-300 bg-violet-50 text-violet-700 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-300 px-2 py-0.5 text-[11px] font-bold">Epic Games Freebies</span>
+              </div>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Jogos gratuitos de hoje conectados à rotação da próxima semana</p>
+            </div>
+            <div class="flex items-center gap-3 text-xs text-slate-600 dark:text-slate-400 font-medium">
+              <span class="flex items-center gap-1.5"><span class="size-2 rounded-full bg-emerald-500"></span> Resgate Ativo</span>
+              <span class="flex items-center gap-1.5"><span class="size-2 rounded-full bg-violet-500"></span> Próxima Semana (P&B)</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch">
+            <div class="md:col-span-7 space-y-3">
+              <div class="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                <span class="flex items-center gap-1.5"><span class="size-2 rounded-full bg-emerald-500 animate-ping"></span><span>Disponíveis para resgate agora</span></span>
+                <span class="text-slate-500 dark:text-slate-400 font-normal">({{ epicFreebiesCurrent.length }} jogos)</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <GameCard v-for="deal in epicFreebiesCurrent" :key="deal.id" :deal="deal" />
+              </div>
+            </div>
+
+            <div class="hidden md:flex md:col-span-1 flex-col items-center justify-center text-slate-400 dark:text-slate-600">
+              <div class="h-10 border-l border-dashed border-slate-300 dark:border-slate-700"></div>
+              <div class="my-2 rounded-full border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900 p-2 text-slate-600 dark:text-slate-400">
+                <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+              </div>
+              <div class="h-10 border-l border-dashed border-slate-300 dark:border-slate-700"></div>
+            </div>
+
+            <div class="md:col-span-4 space-y-3">
+              <div class="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-violet-600 dark:text-violet-400">
+                <span>⏰ Próxima Semana (Em breve)</span>
+                <span class="text-slate-500 dark:text-slate-400 font-normal">({{ epicFreebiesUpcoming.length }})</span>
+              </div>
+              <div v-if="epicFreebiesUpcoming.length > 0" class="space-y-4">
+                <GameCard v-for="deal in epicFreebiesUpcoming" :key="deal.id" :deal="deal" />
+              </div>
+              <div v-else class="rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900/40 p-8 text-center text-xs text-slate-500 dark:text-slate-400">
+                Os próximos jogos grátis da semana serão revelados em breve pela Epic Games.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section aria-label="Carrossel de Ofertas Steam Specials" class="space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800/80 pb-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-xl font-black tracking-tight text-slate-900 dark:text-white">Ofertas em Destaque</h2>
+                <span class="rounded-full border border-sky-300 bg-sky-50 text-sky-800 dark:border-sky-800/60 dark:bg-sky-950/70 dark:text-sky-300 px-2 py-0.5 text-[11px] font-bold">Steam Specials</span>
+              </div>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Navegue pelas melhores promoções ativas na Steam hoje</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" @click="scrollCarousel('left')" class="flex size-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500" aria-label="Rolar esquerda">◄</button>
+              <button type="button" @click="scrollCarousel('right')" class="flex size-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900/90 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500" aria-label="Rolar direita">►</button>
+            </div>
+          </div>
+
+          <div ref="steamCarouselRef" class="no-scrollbar flex gap-4 overflow-x-auto scroll-smooth snap-x pb-2 pt-1">
+            <div v-for="deal in steamSpecials" :key="deal.id" class="w-72 sm:w-80 shrink-0 snap-start">
+              <GameCard :deal="deal" />
+            </div>
+          </div>
+        </section>
+
+        <section aria-label="Filtros pílula" class="space-y-4 rounded-2xl border border-slate-200 bg-white/70 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 p-4 sm:p-5 backdrop-blur-md">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex flex-wrap items-center gap-2">
+              <button
+                v-for="p in pills"
+                :key="p.id"
+                type="button"
+                @click="activePill = p.id; visibleCount = pageSize"
+                class="rounded-full px-4 py-2 text-xs font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 border border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+                :class="activePill === p.id ? p.active : p.inactive"
+              >
+                {{ p.label }}
+              </button>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <label for="sort-select" class="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">Ordenar por:</label>
+              <select id="sort-select" v-model="sortBy" class="rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 shadow-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+                <option value="discount">Maior Desconto (%)</option>
+                <option value="price">Menor Preço (R$)</option>
+                <option value="name">Ordem Alfabética (A-Z)</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <section aria-label="Feed de ofertas" class="space-y-6">
+          <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+            <span>Exibindo <strong>{{ visibleDeals.length }}</strong> de <strong>{{ filteredDeals.length }}</strong> ofertas</span>
+            <button v-if="searchQuery || activePill !== 'all' || selectedStore !== 'all'" type="button" @click="resetAllFilters" class="text-emerald-600 dark:text-emerald-400 hover:underline">Limpar filtros ativos</button>
+          </div>
+
+          <div v-if="loading" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" aria-busy="true">
+            <GameCardSkeleton v-for="n in 8" :key="n" />
+          </div>
+
+          <div v-else-if="error" class="space-y-3 rounded-2xl border border-rose-300 bg-rose-50 p-8 text-center dark:border-rose-900/60 dark:bg-rose-950/30">
+            <span class="text-3xl" aria-hidden="true">⚠️</span>
+            <h2 class="text-base font-bold text-rose-700 dark:text-rose-200">Não foi possível carregar o feed</h2>
+            <p class="mx-auto max-w-md text-xs text-rose-600 dark:text-rose-300 sm:text-sm">{{ error }}</p>
+            <div>
+              <button type="button" @click="fetchDeals" class="min-h-11 rounded-xl bg-rose-600 px-5 py-2 text-xs font-bold text-white shadow hover:bg-rose-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400">Tentar novamente</button>
+            </div>
+          </div>
+
+          <div v-else-if="visibleDeals.length > 0" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <GameCard v-for="deal in visibleDeals" :key="deal.id" :deal="deal" />
+          </div>
+
+          <div v-else class="space-y-3 rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900/60 backdrop-blur-md">
+            <span class="text-4xl" aria-hidden="true">🎮</span>
+            <h3 class="text-base font-bold text-slate-900 dark:text-slate-100">Nenhum jogo encontrado para estes filtros</h3>
+            <p class="mx-auto max-w-md text-xs text-slate-500 dark:text-slate-400 sm:text-sm">Tente ajustar o termo de busca ou selecionar outro filtro pílula.</p>
+            <div class="pt-2">
+              <button type="button" @click="resetAllFilters" class="min-h-10 rounded-xl border border-slate-300 bg-slate-100 hover:bg-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 px-4 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">Redefinir filtros</button>
+            </div>
+          </div>
+
+          <div class="flex flex-col items-center justify-center pt-6 space-y-3">
+            <div :ref="setSentinel" class="h-2 w-full"></div>
+            <button v-if="hasMoreDeals" type="button" @click="loadMore" class="min-h-11 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 shadow-sm dark:border-slate-700 dark:bg-slate-900/90 dark:hover:bg-slate-800 dark:text-slate-200 px-6 py-2.5 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+              Carregar mais ofertas ({{ filteredDeals.length - visibleDeals.length }} restantes)
+            </button>
+            <span v-else-if="filteredDeals.length > 0" class="text-xs text-slate-400 dark:text-slate-500">Você visualizou todas as ofertas disponíveis hoje! 🎉</span>
+          </div>
+        </section>
+      </template>
     </main>
 
     <footer class="border-t border-slate-200 bg-slate-100 text-slate-500 dark:border-slate-800/80 dark:bg-slate-950 dark:text-slate-400 py-8 text-center text-xs transition-colors duration-200">
