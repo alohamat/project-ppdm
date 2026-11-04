@@ -208,7 +208,6 @@ const resetAllFilters = () => {
             </button>
           </div>
 
-          <!-- Botão Switch de Tema Claro/Escuro funcional -->
           <button
             type="button"
             @click="toggleTheme"
@@ -216,11 +215,9 @@ const resetAllFilters = () => {
             :title="isDark ? 'Mudar para tema claro' : 'Mudar para tema escuro'"
             :aria-label="isDark ? 'Ativar modo claro' : 'Ativar modo escuro'"
           >
-            <!-- Ícone da Lua no Dark Mode -->
             <svg v-if="isDark" class="size-4.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
               <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
             </svg>
-            <!-- Ícone do Sol no Light Mode -->
             <svg v-else class="size-4.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
@@ -247,11 +244,8 @@ const resetAllFilters = () => {
     </header>
 
     <main class="mx-auto w-full max-w-7xl flex-1 space-y-10 p-4 sm:p-6 lg:p-8">
-      <!-- ESQUELETO DE CARREGAMENTO INICIAL: Exibido enquanto as ofertas não foram carregadas -->
-      <template v-if="loading && !dealsData">
-        <!-- Esqueleto do Economômetro & Destaque Principal -->
+      <div v-if="loading && !dealsData" class="space-y-10" aria-busy="true">
         <section aria-label="Carregando resumo e destaque" class="space-y-4">
-          <!-- Economômetro Skeleton -->
           <div class="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white/80 dark:border-slate-800 dark:bg-slate-900/60 p-4 shadow-sm animate-pulse">
             <div class="flex items-center gap-3">
               <div class="size-10 rounded-xl bg-slate-200 dark:bg-slate-800"></div>
@@ -266,9 +260,8 @@ const resetAllFilters = () => {
             </div>
           </div>
 
-          <!-- Hero Free Game Skeleton -->
           <div class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white/90 shadow-xl dark:border-slate-800 dark:bg-slate-900/80 animate-pulse">
-            <div class="flex flex-col lg:flex-row">
+            <div class="grid grid-cols-1 lg:grid-cols-12">
               <div class="aspect-video lg:col-span-7 w-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
                 <div class="size-12 rounded-full bg-slate-300/60 dark:bg-slate-700/60"></div>
               </div>
@@ -297,7 +290,6 @@ const resetAllFilters = () => {
           </div>
         </section>
 
-        <!-- Esqueleto do Radar de Brindes -->
         <section aria-label="Carregando radar de brindes" class="space-y-4 animate-pulse">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800/80 pb-3">
             <div class="space-y-1.5">
@@ -334,7 +326,6 @@ const resetAllFilters = () => {
           </div>
         </section>
 
-        <!-- Esqueleto das Ofertas em Destaque Steam -->
         <section aria-label="Carregando ofertas Steam" class="space-y-4 animate-pulse">
           <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800/80 pb-3">
             <div class="space-y-1.5">
@@ -357,7 +348,6 @@ const resetAllFilters = () => {
           </div>
         </section>
 
-        <!-- Esqueleto dos Filtros Pílula -->
         <section aria-label="Carregando filtros" class="space-y-4 rounded-2xl border border-slate-200 bg-white/70 dark:border-slate-800 dark:bg-slate-900/60 p-4 sm:p-5 animate-pulse">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex flex-wrap items-center gap-2">
@@ -370,28 +360,23 @@ const resetAllFilters = () => {
           </div>
         </section>
 
-        <!-- Esqueleto do Feed de Ofertas -->
         <section aria-label="Carregando feed de ofertas" class="space-y-6">
           <div class="h-4 w-40 rounded bg-slate-200 dark:bg-slate-800 animate-pulse"></div>
-          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" aria-busy="true">
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <GameCardSkeleton v-for="n in 8" :key="n" />
           </div>
         </section>
-      </template>
+      </div>
 
-      <!-- ERRO NA CARGA INICIAL: Quando não há dados e ocorreu um erro -->
-      <template v-else-if="error && !dealsData">
-        <div class="space-y-3 rounded-2xl border border-rose-300 bg-rose-50 p-8 text-center dark:border-rose-900/60 dark:bg-rose-950/30">
-          <span class="text-3xl" aria-hidden="true">⚠️</span>
-          <h2 class="text-base font-bold text-rose-700 dark:text-rose-200">Não foi possível carregar as ofertas</h2>
-          <p class="mx-auto max-w-md text-xs text-rose-600 dark:text-rose-300 sm:text-sm">{{ error }}</p>
-          <div>
-            <button type="button" @click="fetchDeals" class="min-h-11 rounded-xl bg-rose-600 px-5 py-2 text-xs font-bold text-white shadow hover:bg-rose-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400">Tentar novamente</button>
-          </div>
+      <div v-else-if="error && !dealsData" class="space-y-3 rounded-2xl border border-rose-300 bg-rose-50 p-8 text-center dark:border-rose-900/60 dark:bg-rose-950/30">
+        <span class="text-3xl" aria-hidden="true">⚠️</span>
+        <h2 class="text-base font-bold text-rose-700 dark:text-rose-200">Não foi possível carregar as ofertas</h2>
+        <p class="mx-auto max-w-md text-xs text-rose-600 dark:text-rose-300 sm:text-sm">{{ error }}</p>
+        <div>
+          <button type="button" @click="fetchDeals" class="min-h-11 rounded-xl bg-rose-600 px-5 py-2 text-xs font-bold text-white shadow hover:bg-rose-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400">Tentar novamente</button>
         </div>
-      </template>
+      </div>
 
-      <!-- CONTEÚDO PRINCIPAL: Exibido assim que as ofertas forem carregadas -->
       <template v-else>
         <section aria-label="Destaque principal e Economômetro" class="space-y-4">
           <div class="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-emerald-500/30 bg-linear-to-r from-emerald-50/90 via-white/80 to-slate-50/80 dark:from-emerald-950/40 dark:via-slate-900/80 dark:to-slate-900/70 p-4 backdrop-blur-md shadow-lg shadow-emerald-500/5 dark:shadow-emerald-950/20">
@@ -419,7 +404,7 @@ const resetAllFilters = () => {
           </div>
 
           <div v-if="heroFreeGame" class="relative overflow-hidden rounded-3xl border border-slate-200 bg-white/90 shadow-xl dark:border-slate-800 dark:bg-slate-900/80 backdrop-blur-md dark:shadow-2xl transition-all duration-300 hover:border-slate-300 dark:hover:border-slate-700">
-            <div class="flex flex-col lg:flex-row">
+            <div class="grid grid-cols-1 lg:grid-cols-12">
               <div class="relative lg:col-span-7 aspect-video overflow-hidden bg-slate-950">
                 <img :src="heroFreeGame.image_url" :alt="heroFreeGame.title" class="size-full object-cover transition-transform duration-500 hover:scale-105" />
                 <div class="pointer-events-none absolute inset-0 bg-linear-to-t from-slate-950 via-slate-950/40 to-transparent lg:bg-linear-to-r lg:from-transparent lg:to-slate-900/95"></div>
